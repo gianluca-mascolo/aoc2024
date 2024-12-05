@@ -2,10 +2,35 @@
 import sys
 
 
+def ordering(update, rules):
+    pages = [p for p in update]
+    valid = True
+    correct = None
+    for k, v in enumerate(pages):
+        if breaking_rules := (set(pages[:k]) & set(rules[v]["before"])):
+            valid = False
+            violate = breaking_rules.pop()
+            swap = pages.index(violate)
+            pages[k], pages[swap] = pages[swap], pages[k]
+            correct = ordering(pages, rules)
+            break
+        if breaking_rules := (set(pages[k + 1 :]) & set(rules[v]["after"])):
+            valid = False
+            violate = breaking_rules.pop()
+            swap = pages.index(violate)
+            pages[k], pages[swap] = pages[swap], pages[k]
+            correct = ordering(pages, rules)
+            break
+    if valid:
+        return pages[len(pages) // 2]
+    return correct
+
+
 def main():
     loading = "rule"
     rules = {}
-    tot = 0
+    part1 = 0
+    part2 = 0
     while line := sys.stdin.readline():
         line = line.rstrip()
         if line == "":
@@ -25,11 +50,14 @@ def main():
             for k, v in enumerate(update):
                 if (set(update[:k]) & set(rules[v]["before"])) or (set(update[k + 1 :]) & set(rules[v]["after"])):
                     valid = False
+                    correct = ordering(update, rules)
+                    part2 += correct
+                    print(f"correct: {correct}")
                     break
             print(f"update valid: {valid}")
             if valid:
-                tot += update[len(update) // 2]
-    print(tot)
+                part1 += update[len(update) // 2]
+    print(part1, part2)
 
 
 if __name__ == "__main__":
