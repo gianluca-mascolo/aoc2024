@@ -10,10 +10,11 @@ def main():
             list_one.append(int(values[0]))
             list_two.append(int(values[-1]))
             line = reader.readline()
-    distance = sum(abs(a-b) for a,b in zip(sorted(list_one),sorted(list_two)))
+    distance = sum(abs(a - b) for a, b in zip(sorted(list_one), sorted(list_two)))
     print(distance)
-    similarity = sum(el*list_two.count(el) for el in list_one)
+    similarity = sum(el * list_two.count(el) for el in list_one)
     print(similarity)
+
 
 if __name__ == "__main__":
     main()
