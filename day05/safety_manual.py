@@ -7,7 +7,7 @@ def ordering(update, rules):
     valid = True
     correct = None
     for k, v in enumerate(pages):
-        if breaking_rules := (set(pages[:k]) & set(rules[v]["before"]) | set(pages[k + 1 :]) & set(rules[v]["after"])):
+        if breaking_rules := (set(pages[:k]) & set(rules[v]["before"])) | (set(pages[k + 1 :]) & set(rules[v]["after"])):
             valid = False
             violate = breaking_rules.pop()
             swap = pages.index(violate)
