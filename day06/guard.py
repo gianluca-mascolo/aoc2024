@@ -8,7 +8,9 @@ class Directions(Enum):
     DOWN = "v"
     LEFT = "<"
     RIGHT = ">"
+    NONE = None
 
+WALL = { "#": True, ".": False }
 
 @dataclass
 class Guard:
@@ -36,6 +38,11 @@ class Guard:
         elif self.direction == Directions.RIGHT:
             self.direction = Directions.DOWN
 
+@dataclass
+class Cell():
+    wall: bool
+    visited: bool
+    direction: list
 
 def main():
     with open("input", "r") as reader:
@@ -48,10 +55,10 @@ def main():
             x = 0
             for cell in line:
                 if cell in [d.value for d in Directions]:
-                    labmap[y].append("X")
+                    labmap[y].append(Cell(wall=False,visited=True,direction=[Directions(cell)]))
                     guard = Guard(x, y, Directions(cell))
                 else:
-                    labmap[y].append(cell)
+                    labmap[y].append(Cell(wall=WALL[cell],visited=False,direction=[]))
                 x += 1
             line = reader.readline()
             y += 1
@@ -61,17 +68,18 @@ def main():
         dx, dy = guard.step()
         if guard.y + dy >= 0 and guard.y + dy < ylimit and guard.x + dx >= 0 and guard.x + dx < xlimit:
             lookup_cell = labmap[guard.y + dy][guard.x + dx]
-            if lookup_cell == "." or lookup_cell == "X":
+            if not lookup_cell.wall:
                 guard.y += dy
                 guard.x += dx
-                labmap[guard.y][guard.x] = "X"
-            elif lookup_cell == "#":
+                labmap[guard.y][guard.x].visited=True
+                labmap[guard.y][guard.x].direction.append(guard.direction)
+            else:
                 guard.turn()
         else:
             break
     tot = 0
     for line in labmap:
-        tot += line.count("X")
+        tot += len([cell for cell in line if cell.visited==True])
     print(tot)
 
 
