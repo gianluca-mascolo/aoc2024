@@ -45,7 +45,7 @@ class Cell():
     direction: list
 
 
-def walk(labmap: list, guard: Guard):
+def walk(labmap: list, guard: Guard, loopcheck: bool):
     g = Guard(0,0,Directions.NONE)
     g.x = guard.x
     g.y = guard.y
@@ -53,6 +53,8 @@ def walk(labmap: list, guard: Guard):
     lab = deepcopy(labmap)
     xlimit = len(lab[0])
     ylimit = len(lab)
+    loop = False
+    loopcount = 0
     while g.y >= 0 and g.y < ylimit and g.x >= 0 and g.x < xlimit:
         dx, dy = g.step()
         if g.y + dy >= 0 and g.y + dy < ylimit and g.x + dx >= 0 and g.x + dx < xlimit:
@@ -60,8 +62,17 @@ def walk(labmap: list, guard: Guard):
             if not lookup_cell.wall:
                 g.y += dy
                 g.x += dx
-                lab[g.y][g.x].visited=True
-                lab[g.y][g.x].direction.append(g.direction)
+                if loopcheck and g.direction in lab[g.y][g.x].direction:
+                    loop = True
+                    break
+                else:
+                    lab[g.y][g.x].wall=True
+                    _, isloop = walk(lab,guard,True)
+                    if isloop:
+                        loopcount+=1
+                    lab[g.y][g.x].wall=False
+                    lab[g.y][g.x].visited=True
+                    lab[g.y][g.x].direction.append(g.direction)
             else:
                 g.turn()
         else:
@@ -69,7 +80,10 @@ def walk(labmap: list, guard: Guard):
     tot = 0
     for line in lab:
         tot += len([cell for cell in line if cell.visited==True])
-    return tot
+    if loopcheck:
+        return tot,loop
+    else:
+        return tot,loopcount
 
 def main():
     with open("example", "r") as reader:
@@ -89,7 +103,8 @@ def main():
                 x += 1
             line = reader.readline()
             y += 1
-    print(walk(labmap,guard))
+    tot,loop = walk(labmap,guard,False)
+    print(tot,loop)
 
 
 if __name__ == "__main__":
