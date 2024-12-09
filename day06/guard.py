@@ -55,6 +55,7 @@ def walk(labmap: list, guard: Guard, loopcheck: bool):
     ylimit = len(lab)
     loop = False
     loopcount = 0
+    touched = []
     while g.y >= 0 and g.y < ylimit and g.x >= 0 and g.x < xlimit:
         dx, dy = g.step()
         if g.y + dy >= 0 and g.y + dy < ylimit and g.x + dx >= 0 and g.x + dx < xlimit:
@@ -62,17 +63,24 @@ def walk(labmap: list, guard: Guard, loopcheck: bool):
             if not lookup_cell.wall:
                 g.y += dy
                 g.x += dx
-                if loopcheck and g.direction in lab[g.y][g.x].direction:
-                    loop = True
-                    break
+                print(f"{('#','*')[loopcheck]}loopcheck {loopcheck}")
+                print(f"touch {touched}")
+                print(f"known dir {lab[g.y][g.x].direction}")
+                if loopcheck:
+                    if (g.x,g.y) in touched and g.direction in lab[g.y][g.x].direction:
+                        loop = True
+                        print(f"loop found at {g.x} {g.y}")
+                        break
                 else:
                     lab[g.y][g.x].wall=True
+                    print(f"check for {g.x},{g.y}")
                     _, isloop = walk(lab,guard,True)
                     if isloop:
                         loopcount+=1
                     lab[g.y][g.x].wall=False
                     lab[g.y][g.x].visited=True
-                    lab[g.y][g.x].direction.append(g.direction)
+                lab[g.y][g.x].direction.append(g.direction)
+                touched.append((g.x,g.y))
             else:
                 g.turn()
         else:
