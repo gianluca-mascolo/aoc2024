@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys
 
+def oplist(n: int):
+    return [ format(op,'b').zfill(n).replace('0','*').replace('1','+') for op in range(2**n) ]
 
 def main():
     calibration = 0
@@ -10,7 +12,8 @@ def main():
         input_numbers = [ int(n) for n in line.split(':')[1].split(' ')[1:] ]
         #print(test_result,input_numbers)
         num_op = len(input_numbers)-1
-        operators = [ format(op,'b').zfill(num_op).replace('0','*').replace('1','+') for op in range(2**num_op) ]
+        operators = oplist(num_op)
+        print(operators)
         concat_operations = []
         for opnum,operations in enumerate(operators):
             concat_operations.append([])
