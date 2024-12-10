@@ -18,6 +18,22 @@ def antinode(a0: Antenna, a1: Antenna, xlimit: int, ylimit: int):
         res.append((2 * a1.x - a0.x, 2 * a1.y - a0.y))
     return set(res)
 
+def harmonics(a0: Antenna, a1: Antenna, xlimit: int, ylimit: int):
+    res = []
+    px = a0.x
+    py = a0.y
+    while px >= 0 and px < xlimit and py >= 0 and py < xlimit:
+        res.append((px,py))
+        px += a0.x-a1.x
+        py += a0.y-a1.y
+    px = a1.x
+    py = a1.y
+    while px >= 0 and px < xlimit and py >= 0 and py < xlimit:
+        res.append((px,py))
+        px += a1.x-a0.x
+        py += a1.y-a0.y
+    return set(res)
+
 
 def main():
     with open("input", "r") as reader:
@@ -35,11 +51,14 @@ def main():
     ylimit = y
     frequencies = set(a.freq for a in citymap)
     an = set()
+    ham = set()
     for f in frequencies:
         nodes = [a for a in citymap if a.freq == f]
         for resonance in combinations(nodes, 2):
             an |= antinode(resonance[0], resonance[1], xlimit, ylimit)
-    print(len(an))
+            ham |= harmonics(resonance[0], resonance[1], xlimit, ylimit)
+    print(f"p1: {len(an)}")
+    print(f"p2: {len(ham)}")
 
 
 if __name__ == "__main__":
