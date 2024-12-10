@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 import sys
 
-DEBUG = False
+DEBUG = True
 
+def base3(i: int) -> str:
+    r = str(i%3)
+    while i:=i//3:
+        r = r+str(i%3)
+    return r[::-1]
 
 def oplist(n: int):
-    return [format(op, "b").zfill(n) for op in range(2**n)]
+    return [base3(op).zfill(n) for op in range(3**n)]
 
 
 def main():
@@ -19,6 +24,8 @@ def main():
         num_op = len(input_numbers) - 1
         operators = oplist(num_op)
         for operations in operators:
+            if DEBUG:
+                print(operations)
             acc = input_numbers[0]
             DEBUG_STRING = str(acc)
             for pos, op in enumerate(operations):
