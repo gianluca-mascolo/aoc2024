@@ -44,20 +44,23 @@ class Disk:
         return "".join([str(b.id) if b else "." for b in self.fat])
 
 
-def defrag(disk: Disk):
-    while not disk.compacted:
-        size = disk.size
-        for b in range(size):
-            if disk.fat[b] is None:
-                empty = b
-                break
-        for b in range(size - 1, 0, -1):
-            if disk.fat[b] is not None:
-                full = b
-                break
-        disk.fat[empty], disk.fat[full] = disk.fat[full], disk.fat[empty]
-        if DEBUG:
-            print(disk)
+def defrag(disk: Disk, method: int):
+    if method == 1:
+        while not disk.compacted:
+            size = disk.size
+            for b in range(size):
+                if disk.fat[b] is None:
+                    empty = b
+                    break
+            for b in range(size - 1, 0, -1):
+                if disk.fat[b] is not None:
+                    full = b
+                    break
+            disk.fat[empty], disk.fat[full] = disk.fat[full], disk.fat[empty]
+            if DEBUG:
+                print(disk)
+    elif method == 2:
+        return True
 
 
 def main():
@@ -73,8 +76,7 @@ def main():
         disk = Disk(line.rstrip())
     if DEBUG:
         print(disk)
-    if args.part == 1:
-        defrag(disk)
+    defrag(disk, args.part)
     print(disk.checksum)
 
 
