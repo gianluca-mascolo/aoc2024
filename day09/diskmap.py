@@ -9,7 +9,6 @@ DEBUG = False
 @dataclass
 class File:
     id: int
-    blocks: int
 
 
 class Disk:
@@ -21,7 +20,8 @@ class Disk:
             if position % 2:
                 self.fat.extend([None] * repeat)
             else:
-                self.fat.extend([File(id=position // 2, blocks=repeat)] * repeat)
+                self.fat.extend([File(id=position // 2)] * repeat)
+                self.filemax = position // 2
         self.size = len(self.fat)
 
     @property
@@ -56,8 +56,27 @@ def defrag(disk: Disk, method: int):
                 print(disk)
     elif method == 2:
         if None in disk.fat:
-            q = disk.fat.index(None)
-            print(q)
+            for fileid in range(disk.filemax, -1, -1):
+                filepos = disk.fat.index(File(fileid))
+                move = []
+                for q in range(filepos, disk.size):
+                    if disk.fat[q] is not None and disk.fat[q].id == fileid:
+                        move.append(q)
+                    else:
+                        break
+                empty = []
+                for q in range(0, filepos):
+                    if disk.fat[q] is None:
+                        empty.append(q)
+                    else:
+                        if len(empty) >= len(move):
+                            for pos, block in enumerate(move):
+                                disk.fat[empty[pos]], disk.fat[block] = disk.fat[block], disk.fat[empty[pos]]
+                            if DEBUG:
+                                print(disk)
+                            break
+                        else:
+                            empty.clear()
 
 
 def main():
