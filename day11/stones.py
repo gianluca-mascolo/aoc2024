@@ -2,7 +2,7 @@
 import sys
 import argparse
 
-DEBUG = False
+DEBUG = True
 
 def blink(stones: list):
     new_stones = []
@@ -29,7 +29,7 @@ def main():
         stones = blink(stones)
         if DEBUG:
             print(stones)
-        print(cycle,len(stones))
+        print(f"cycle {cycle} stones {len(stones)}")
 
 
 if __name__ == "__main__":
