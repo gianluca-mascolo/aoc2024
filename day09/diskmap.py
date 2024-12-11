@@ -2,7 +2,7 @@
 import sys
 from dataclasses import dataclass
 
-DEBUG = True
+DEBUG = False
 
 
 @dataclass
