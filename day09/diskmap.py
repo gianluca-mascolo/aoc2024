@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import sys
 from dataclasses import dataclass
 
@@ -60,11 +61,20 @@ def defrag(disk: Disk):
 
 
 def main():
+    global DEBUG
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--debug", help="Debug ouput", action="store_true")
+    parser.add_argument("-p", "--part", type=int, help="part to solve (1 or 2)", default=1)
+    args = parser.parse_args()
+    if args.debug:
+        DEBUG = True
+    assert args.part in [1, 2]
     while line := sys.stdin.readline():
         disk = Disk(line.rstrip())
     if DEBUG:
         print(disk)
-    defrag(disk)
+    if args.part == 1:
+        defrag(disk)
     print(disk.checksum)
 
 
