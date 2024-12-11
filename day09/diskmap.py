@@ -14,7 +14,6 @@ class File:
 
 class Disk:
     def __init__(self, dm: str):
-        self.map = dm
         self.fat = []
         for position, content in enumerate(dm):
             self.fat
@@ -23,6 +22,7 @@ class Disk:
                 self.fat.extend([None] * repeat)
             else:
                 self.fat.extend([File(id=position // 2, blocks=repeat)] * repeat)
+        self.size = len(self.fat)
 
     @property
     def compacted(self) -> bool:
@@ -31,10 +31,6 @@ class Disk:
             return all(b is None for b in self.fat[empty:])
         else:
             return True
-
-    @property
-    def size(self) -> int:
-        return len(self.fat)
 
     @property
     def checksum(self) -> int:
