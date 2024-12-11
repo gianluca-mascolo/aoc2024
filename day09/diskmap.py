@@ -1,38 +1,36 @@
 #!/usr/bin/env python3
-from dataclasses import dataclass
 import sys
+from dataclasses import dataclass
+
 
 @dataclass
 class File:
     id: int
     blocks: int
 
+
 class Disk:
     def __init__(self, dm: str):
         self.map = dm
-        self.fat = [ File(id=b//2,blocks=dm[b]) for b in range(0,len(dm),2) ]
-        #self.blocks = [ for b in dm ]
-
-    def __repr__(self):
-        class_name = type(self).__name__
-        return f"{class_name}(dm={self.map!r})"
+        self.fat = []
+        for position, content in enumerate(dm):
+            self.fat
+            repeat = int(content)
+            if position % 2:
+                self.fat.extend([None] * repeat)
+            else:
+                self.fat.extend([File(id=position // 2, blocks=repeat)] * repeat)
 
     def __str__(self):
-        res = []
-        for p, c in enumerate(self.map):
-            repeat = int(c)
-            if p % 2:
-                res.append(f'{"."*repeat}')
-            else:
-                res.append(f"{str(p//2)*repeat}")
-        return "".join(res)
+        return "".join([str(b.id) if b else "." for b in self.fat])
 
 
 def main():
     while line := sys.stdin.readline():
         disk = Disk(line.rstrip())
     print(disk)
-    print(disk.fat)
+    for b in disk.fat:
+        print(b)
 
 
 if __name__ == "__main__":
