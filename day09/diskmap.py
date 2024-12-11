@@ -43,12 +43,11 @@ class Disk:
 def defrag(disk: Disk, method: int):
     if method == 1:
         while not disk.compacted:
-            size = disk.size
-            for b in range(size):
+            for b in range(disk.size):
                 if disk.fat[b] is None:
                     empty = b
                     break
-            for b in range(size - 1, 0, -1):
+            for b in range(disk.size - 1, 0, -1):
                 if disk.fat[b] is not None:
                     full = b
                     break
@@ -56,7 +55,9 @@ def defrag(disk: Disk, method: int):
             if DEBUG:
                 print(disk)
     elif method == 2:
-        return True
+        if None in disk.fat:
+            q = disk.fat.index(None)
+            print(q)
 
 
 def main():
