@@ -22,11 +22,11 @@ class Disk:
                 self.fat.extend([File(id=position // 2, blocks=repeat)] * repeat)
     
     def compacted(self):
-        last = bool(self.fat[-1])
-        for b in self.fat[::-1]:
-            if bool(b) != last:
-                return False
-        return True
+        if None in self.fat:
+            empty = self.fat.index(None)
+            return all(b == None for b in self.fat[empty:])
+        else:
+            return True
 
     def __str__(self):
         return "".join([str(b.id) if b else "." for b in self.fat])
