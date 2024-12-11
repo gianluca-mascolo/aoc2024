@@ -64,19 +64,27 @@ def defrag(disk: Disk, method: int):
                         move.append(q)
                     else:
                         break
+                if DEBUG:
+                    print(f"# id: {fileid} blocks: {len(move)} pos: {move}")
                 empty = []
+                is_moved = False
                 for q in range(0, filepos):
                     if disk.fat[q] is None:
                         empty.append(q)
                     else:
                         if len(empty) >= len(move):
+                            if DEBUG:
+                                print(f"# move to {empty}")
                             for pos, block in enumerate(move):
                                 disk.fat[empty[pos]], disk.fat[block] = disk.fat[block], disk.fat[empty[pos]]
+                            is_moved = True
                             if DEBUG:
                                 print(disk)
                             break
                         else:
                             empty.clear()
+                if DEBUG and not is_moved:
+                    print(f"# no contiguous free space for id: {fileid}")
 
 
 def main():
@@ -93,7 +101,7 @@ def main():
     if DEBUG:
         print(disk)
     defrag(disk, args.part)
-    print(disk.checksum)
+    print(f"# {disk.checksum}")
 
 
 if __name__ == "__main__":
