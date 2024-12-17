@@ -52,10 +52,8 @@ def main():
     if DEBUG:
         print(gardens)
 
-    points = set(gardens.keys())
     regions = []
-    while len(points):
-        point = points.pop()
+    for point in gardens.keys():
         connections = {point}
         for direction in ["left", "right", "up", "down"]:
             if connected := getattr(gardens[point], direction):
