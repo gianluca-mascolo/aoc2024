@@ -14,6 +14,11 @@ class Plot:
     up: Optional[tuple] = None
     down: Optional[tuple] = None
 
+@dataclass
+class Region:
+    kind: bytes
+    points: set
+
 
 def main():
     global DEBUG
@@ -46,24 +51,40 @@ def main():
     if DEBUG:
         print(gardens)
 
-    regions = [{(0, 0)}]
-    for p in gardens.keys():
-        connections = {p}
+    points = set(gardens.keys())
+    regions = []
+    while len(points):
+        point = points.pop()
+        connections = {point}
         for direction in ["left", "right", "up", "down"]:
-            if connected := getattr(gardens[p], direction):
+            if connected := getattr(gardens[point], direction):
                 connections |= {connected}
-        print(gardens[p].kind, connections, len(connections))
-        if len(connections) == 1:
-            regions.append(connections)
+        neighbors = {c for c in connections}
+        for p in connections:
+            for direction in ["left", "right", "up", "down"]:
+                if connected := getattr(gardens[p], direction):
+                    neighbors |= {connected}
+        if gardens[point].kind not in [r.kind for r in regions]:
+            regions.append(Region(gardens[point].kind,neighbors))
         else:
+            glue = False
             for r in regions:
-                if connections & r:
-                    r |= connections
-            if not any(connections & r for r in regions):
-                regions.append(connections)
-    print("XXX")
+                if r.kind == gardens[point].kind and neighbors & r.points:
+                    r.points |= neighbors
+                    glue = True
+            if not glue:
+                regions.append(Region(gardens[point].kind,neighbors))
+    print("###")
+    result=0
     for r in regions:
-        print(gardens[list(r)[0]].kind, r)
+        perimeter = 0
+        for p in r.points:
+            for direction in ["left", "right", "up", "down"]:
+                if getattr(gardens[p], direction) is None:
+                    perimeter+=1
+        print(r,perimeter,len(r.points),len(r.points)*perimeter)
+        result+=len(r.points)*perimeter
+    print(result)
 
 
 if __name__ == "__main__":
