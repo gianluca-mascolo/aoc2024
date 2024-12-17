@@ -1,26 +1,18 @@
 #!/usr/bin/env python3
 import argparse
 from dataclasses import dataclass
+from typing import Optional
 
 DEBUG = False
 
 
-@dataclass(eq=True, frozen=True)
-class Fence:
-    x: int
-    y: int
+@dataclass
+class Plot:
     kind: bytes
-
-
-def nearby(fence: Fence, region: set) -> bool:
-    for cell in region:
-        xdist = abs(cell.x - fence.x)
-        ydist = abs(cell.y - fence.y)
-        if DEBUG:
-            print(f"distance {xdist} {ydist}")
-        if (xdist + ydist) <= 1:
-            return True
-    return False
+    left: Optional[tuple] = None
+    right: Optional[tuple] = None
+    up: Optional[tuple] = None
+    down: Optional[tuple] = None
 
 
 def main():
@@ -32,42 +24,30 @@ def main():
     if args.debug:
         DEBUG = True
     with open(args.filename, "r") as reader:
-        fencemap = []
-        fencekind = set()
+        # fencemap = []
+        gardens = dict()
+        # fencekind = set()
         y = 0
         line = reader.readline()
         while line != "":  # The EOF char is an empty string
             line = line.rstrip()
-            xlimit = len(line)
             #            fencemap.append([c for c in line])
-            fencemap.extend([Fence(x, y, f) for x, f in enumerate(line)])
+            for x, f in enumerate(line):
+                gardens[(x, y)] = Plot(f)
+                if (x - 1, y) in gardens and gardens[(x - 1, y)].kind == f:
+                    print(f"{y} {f} left")
+                    gardens[(x - 1, y)].right = (x, y)
+                    gardens[(x, y)].left = (x - 1, y)
+                if (x, y - 1) in gardens and gardens[(x, y - 1)].kind == f:
+                    print(f"{y} {f} up")
+                    gardens[(x, y - 1)].down = (x, y)
+                    gardens[(x, y)].up = (x, y - 1)
+                # fencemap.extend([Fence(Cell(x, y), f)])
 
-            fencekind |= {c for c in line}
+            # fencekind |= {c for c in line}
             line = reader.readline()
             y += 1
-    ylimit = y
-    # print(fencemap)
-    # print(list(filter(lambda x: x.kind == 'A', fencemap)))
-    regions = dict()
-    for k in fencekind:
-        regions[k] = []
-        for f in filter(lambda x: x.kind == k, fencemap):
-            if len(regions[k]) == 0:
-                print(f"new region (first) {f.x} {f.y} {f.kind}")
-                regions[k].append({f})
-            else:
-                found = False
-                for region in regions[k]:
-                    print(f"fence: {f} region: {region}")
-                    if nearby(f, region):
-                        print("Add to region")
-                        found = True
-                        region |= {f}
-                if not found:
-                    print(f"new region (seen) {f.x} {f.y} {f.kind}")
-                    regions[k].append({f})
-    for k, v in regions.items():
-        print(k, len(v))
+    print(gardens)
 
 
 if __name__ == "__main__":
