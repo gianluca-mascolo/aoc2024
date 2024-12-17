@@ -14,6 +14,7 @@ class Plot:
     up: Optional[tuple] = None
     down: Optional[tuple] = None
 
+
 @dataclass
 class Region:
     kind: bytes
@@ -65,7 +66,7 @@ def main():
                 if connected := getattr(gardens[p], direction):
                     neighbors |= {connected}
         if gardens[point].kind not in [r.kind for r in regions]:
-            regions.append(Region(gardens[point].kind,neighbors))
+            regions.append(Region(gardens[point].kind, neighbors))
         else:
             glue = False
             for r in regions:
@@ -73,17 +74,17 @@ def main():
                     r.points |= neighbors
                     glue = True
             if not glue:
-                regions.append(Region(gardens[point].kind,neighbors))
+                regions.append(Region(gardens[point].kind, neighbors))
     print("###")
-    result=0
+    result = 0
     for r in regions:
         perimeter = 0
         for p in r.points:
             for direction in ["left", "right", "up", "down"]:
                 if getattr(gardens[p], direction) is None:
-                    perimeter+=1
-        print(r,perimeter,len(r.points),len(r.points)*perimeter)
-        result+=len(r.points)*perimeter
+                    perimeter += 1
+        print(r, perimeter, len(r.points), len(r.points) * perimeter)
+        result += len(r.points) * perimeter
     print(result)
 
 
