@@ -46,27 +46,24 @@ def main():
     if DEBUG:
         print(gardens)
 
-    regions = []
+    regions = [{(0, 0)}]
     for p in gardens.keys():
-        print("check", p, gardens[p])
+        connections = {p}
         for direction in ["left", "right", "up", "down"]:
             if connected := getattr(gardens[p], direction):
-                print("conn1", connected)
-                for r in regions:
-                    if connected in r:
-                        r |= {p}
-
-        if any(p in r for r in regions):
-            print("trovo")
+                connections |= {connected}
+        print(gardens[p].kind, connections, len(connections))
+        if len(connections) == 1:
+            regions.append(connections)
         else:
-            regions.append({p})
-            for direction in ["left", "right", "up", "down"]:
-                if connected := getattr(gardens[p], direction):
-                    print("conn", connected)
-                    regions[-1] |= {connected}
+            for r in regions:
+                if connections & r:
+                    r |= connections
+            if not any(connections & r for r in regions):
+                regions.append(connections)
     print("XXX")
     for r in regions:
-        print(r)
+        print(gardens[list(r)[0]].kind, r)
 
 
 if __name__ == "__main__":
