@@ -106,6 +106,8 @@ def main():
 
     overlap = True
     while overlap:
+        if DEBUG:
+            print("regions count: ",len(regions))
         regions, overlap = mergeregions(regions)
     result = 0
     for r in regions:
