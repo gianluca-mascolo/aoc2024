@@ -21,6 +21,43 @@ class Region:
     points: set
 
 
+def mergeregions(regions: list):
+    rcopy = [r for r in regions]
+    merged = []
+    has_merges = False
+    merged_list = []
+    for position, check in enumerate(rcopy):
+        comparison = []
+        if position in merged_list:
+            print(f"already merged {position}")
+            continue
+        for other, compare in enumerate(rcopy):
+            if other != position:
+                comparison.append(bool(check.points & compare.points))
+            else:
+                comparison.append(False)
+        if any(comparison):
+            merging_index = comparison.index(True)
+            merging_points = rcopy[merging_index].points
+            merging_kind = rcopy[merging_index].kind
+            merging_region = rcopy[merging_index]
+            if check.kind == merging_kind:
+                print(f"region {position} against {merging_index}")
+                new_region = Region(check.kind, check.points | merging_points)
+                print(f"original: {len(check.points)} {check}")
+                print(f"merging: {len(merging_points)} {merging_region}")
+                print(f"new: {len(new_region.points)} {new_region}")
+                merged.append(Region(check.kind, check.points | merging_points))
+                merged_list.append(merging_index)
+                has_merges = True
+            else:
+                merged.append(check)
+        else:
+            merged.append(check)
+    print(f"merged regions len: {len(merged)} {has_merges}")
+    return merged, has_merges
+
+
 def main():
     global DEBUG
     parser = argparse.ArgumentParser()
@@ -73,6 +110,13 @@ def main():
                     glue = True
             if not glue:
                 regions.append(Region(gardens[point].kind, neighbors))
+
+    print("prima", len(regions))
+    overlap = True
+    while overlap:
+        regions, overlap = mergeregions(regions)
+    print("dopo", len(regions))
+
     print("###")
     result = 0
     for r in regions:
