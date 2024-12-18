@@ -29,7 +29,6 @@ def mergeregions(regions: list):
     for position, check in enumerate(rcopy):
         comparison = []
         if position in merged_list:
-            print(f"already merged {position}")
             continue
         for other, compare in enumerate(rcopy):
             if other != position:
@@ -40,21 +39,15 @@ def mergeregions(regions: list):
             merging_index = comparison.index(True)
             merging_points = rcopy[merging_index].points
             merging_kind = rcopy[merging_index].kind
-            merging_region = rcopy[merging_index]
             if check.kind == merging_kind:
-                print(f"region {position} against {merging_index}")
                 new_region = Region(check.kind, check.points | merging_points)
-                print(f"original: {len(check.points)} {check}")
-                print(f"merging: {len(merging_points)} {merging_region}")
-                print(f"new: {len(new_region.points)} {new_region}")
-                merged.append(Region(check.kind, check.points | merging_points))
+                merged.append(new_region)
                 merged_list.append(merging_index)
                 has_merges = True
             else:
                 merged.append(check)
         else:
             merged.append(check)
-    print(f"merged regions len: {len(merged)} {has_merges}")
     return merged, has_merges
 
 
@@ -111,13 +104,9 @@ def main():
             if not glue:
                 regions.append(Region(gardens[point].kind, neighbors))
 
-    print("prima", len(regions))
     overlap = True
     while overlap:
         regions, overlap = mergeregions(regions)
-    print("dopo", len(regions))
-
-    print("###")
     result = 0
     for r in regions:
         perimeter = 0
@@ -125,7 +114,8 @@ def main():
             for direction in ["left", "right", "up", "down"]:
                 if getattr(gardens[p], direction) is None:
                     perimeter += 1
-        print(r, perimeter, len(r.points), len(r.points) * perimeter)
+        if DEBUG:
+            print(r, perimeter, len(r.points), len(r.points) * perimeter)
         result += len(r.points) * perimeter
     print(result)
 
