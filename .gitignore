@@ -166,3 +166,5 @@ example*
 template/*
 template
 text.pdf
+*.odt
+.~lock*
