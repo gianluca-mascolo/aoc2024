@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import re
+from time import sleep
+from os import system
 
 DEBUG = False
 
@@ -12,6 +14,7 @@ def main():
     parser.add_argument("-w", "--wide", type=int, help="field width", required=True)
     parser.add_argument("-t", "--tall", type=int, help="field height", required=True)
     parser.add_argument("-s", "--seconds", type=int, help="run for seconds", default=100)
+    parser.add_argument("-p", "--part", type=int, help="part to solve (1 or 2)", default=1)
     parser.add_argument("filename")
     args = parser.parse_args()
     wide = args.wide
@@ -21,6 +24,7 @@ def main():
         DEBUG = True
     if DEBUG:
         print(f"wide: {wide}, tall: {tall} run: {run}")
+    assert args.part in [1, 2]
     line_regex = re.compile("^p=([0-9-]+),([0-9-]+)[ ]+v=([0-9-]+),([0-9-]+)$")
     robots = []
     with open(args.filename, "r") as reader:
@@ -38,25 +42,46 @@ def main():
             line = reader.readline()
     if DEBUG:
         print(robots[0])
-    for robot in robots:
-        nx = (robot["px"] + robot["vx"] * run) % wide
-        ny = (robot["py"] + robot["vy"] * run) % tall
-        robot["px"] = nx
-        robot["py"] = ny
-    if DEBUG:
-        print(robots[0])
+    if args.part == 1:
+        for robot in robots:
+            nx = (robot["px"] + robot["vx"] * run) % wide
+            ny = (robot["py"] + robot["vy"] * run) % tall
+            robot["px"] = nx
+            robot["py"] = ny
+        if DEBUG:
+            print(robots[0])
 
-    hw = (wide - 1) // 2
-    ht = (tall - 1) // 2
-    quadrants = [(hw, 1, ht, 1), (hw, -1, ht, 1), (hw, 1, ht, -1), (hw, -1, ht, -1)]
-    result = 1
-    for q in quadrants:
-        qx = q[0]
-        cx = q[1]
-        qy = q[2]
-        cy = q[3]
-        result *= len(list(filter(lambda r: cx * (r["px"] - qx) < 0 and cy * (r["py"] - qy) < 0, robots)))
-    print(result)
+        hw = (wide - 1) // 2
+        ht = (tall - 1) // 2
+        quadrants = [(hw, 1, ht, 1), (hw, -1, ht, 1), (hw, 1, ht, -1), (hw, -1, ht, -1)]
+        result = 1
+        for q in quadrants:
+            qx = q[0]
+            cx = q[1]
+            qy = q[2]
+            cy = q[3]
+            result *= len(list(filter(lambda r: cx * (r["px"] - qx) < 0 and cy * (r["py"] - qy) < 0, robots)))
+        print(result)
+    else:
+        with open("asciiart.txt", "a") as artfile:
+            for s in range(run):
+                artfile.write(f"elapse: {s}\n")
+                #print(f"elapse: {s}")
+                matrix = []
+                for _ in range(tall):
+                    matrix.append(['.']*wide)
+                for r in robots:
+                    matrix[r["py"]][r["px"]]='*'
+                    nx = (r["px"] + r["vx"]) % wide
+                    ny = (r["py"] + r["vy"]) % tall
+                    r["px"] = nx
+                    r["py"] = ny
+                for line in matrix:
+                    artfile.write("".join(line)+"\n")
+                    #print("".join(line))
+                #sleep(1)
+                #system("clear")
+        #print(robots)
 
 
 if __name__ == "__main__":
