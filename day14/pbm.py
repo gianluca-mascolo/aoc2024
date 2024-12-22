@@ -21,11 +21,11 @@ def draw(filename: str, width: int, height: int, pixels: list, timestamp: int):
         rw = width + width % 2  # this will make even number of pixels for ffmpeg
         pad = (rw // 7) - 1  # pad timestamp with zeroes
         img.write("P1\n")
-        img.write(f"{width} {rh}\n")
+        img.write(f"{rw} {rh}\n")
         # initialize matrix with all zeroes
         matrix = []
         for _ in range(rh):
-            matrix.append([0] * width)
+            matrix.append([0] * rw)
         # pixels is a list of tuples for pixel to be "ON" in format (x,y)
         for px, py in pixels:
             matrix[py][px] = 1
