@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import argparse
 import re
-from time import sleep
-from os import system
+
 from pbm import draw
+
 DEBUG = False
 
 
@@ -66,39 +66,12 @@ def main():
         for ts in range(run):
             pixels = []
             for r in robots:
-                pixels.append((r["px"],r["py"]))
+                pixels.append((r["px"], r["py"]))
                 nx = (r["px"] + r["vx"]) % wide
                 ny = (r["py"] + r["vy"]) % tall
                 r["px"] = nx
                 r["py"] = ny
-            draw(
-                filename=f"img/robot{str(ts).zfill(13)}.pbm",
-                width=wide+1,
-                height=tall,
-                pixels=pixels,
-                timestamp=ts
-            )
-
-        # with open("asciiart.txt", "a") as artfile:
-        #     for s in range(run):
-
-        #         artfile.write(f"elapse: {s}\n")
-        #         #print(f"elapse: {s}")
-        #         matrix = []
-        #         for _ in range(tall):
-        #             matrix.append(['.']*wide)
-        #         for r in robots:
-        #             matrix[r["py"]][r["px"]]='*'
-        #             nx = (r["px"] + r["vx"]) % wide
-        #             ny = (r["py"] + r["vy"]) % tall
-        #             r["px"] = nx
-        #             r["py"] = ny
-        #         for line in matrix:
-        #             artfile.write("".join(line)+"\n")
-        #             #print("".join(line))
-        #         #sleep(1)
-        #         #system("clear")
-        # #print(robots)
+            draw(filename=f"img/robot{str(ts).zfill(13)}.pbm", width=wide + 1, height=tall, pixels=pixels, timestamp=ts)
 
 
 if __name__ == "__main__":
