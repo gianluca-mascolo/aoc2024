@@ -71,7 +71,7 @@ def main():
                 ny = (r["py"] + r["vy"]) % tall
                 r["px"] = nx
                 r["py"] = ny
-            draw(filename=f"img/robot{str(ts).zfill(13)}.pbm", width=wide + 1, height=tall, pixels=pixels, timestamp=ts)
+            draw(filename=f"img/robot{str(ts).zfill(13)}.pbm", width=wide, height=tall, pixels=pixels, timestamp=ts)
 
 
 if __name__ == "__main__":
