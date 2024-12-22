@@ -168,3 +168,5 @@ template
 text.pdf
 *.odt
 .~lock*
+day14/img/*.pbm
+day14/img/*.mp4
