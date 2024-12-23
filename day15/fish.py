@@ -19,15 +19,15 @@ def move(cell: tuple, maze: list, direction: bytes):
         return cell
     elif maze[y + dy][x + dx] == ".":
         if maze[y][x] == "[" and maze[y + dy][x + dx + 1] in [".", "["]:
-            print(f"[ {x} {y} {dx} {dy}")
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-            maze[y + dy][x + dx + 1] = "]"
-            maze[y][x + dx + 1] = "."
-            # maze[y][x], maze[y + dy][x + 1] = maze[y + dy][x + 1], maze[y][x]
+            maze[y][x] = '.'
+            maze[y][x+1] = '.'
+            maze[y + dy][x + dx] = '['
+            maze[y + dy][x + dx + 1] = ']'
         elif maze[y][x] == "]" and maze[y + dy][x + dx - 1] in [".", "]"]:
-            print("pluto")
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-            maze[y][x], maze[y + dy][x - 1] = maze[y + dy][x - 1], maze[y][x]
+            maze[y][x] = '.'
+            maze[y][x-1] = '.'
+            maze[y + dy][x + dx] = ']'
+            maze[y + dy][x + dx - 1] = '['
         else:
             maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
         return (x + dx, y + dy)
@@ -39,9 +39,38 @@ def move(cell: tuple, maze: list, direction: bytes):
         else:
             return cell
     elif maze[y + dy][x + dx] == "[" or maze[y + dy][x + dx] == "]":
+        print(f"JUMP {maze[y + dy][x + dx]} {x} {y} {dx} {dy}")
         newpos = move(cell=(x + 2 * dx, y + dy), maze=maze, direction=direction)
         print(f"NP: {newpos} cell: {cell} delta: {DIRECTIONS[direction]}")
-        return cell
+        xshift = x+2*dx-newpos[0]
+        yshift = y+2*dy-newpos[1]
+        if xshift or yshift:
+            print(f"SHIFT: {xshift} {yshift}")
+            if maze[y+dy][x+dx] == '[':
+                current = maze[y][x]
+                print(f"A {current}")
+            elif maze[y+dy][x+dx] == ']':
+                current = maze[y][x]
+                print(f"B {current}")
+
+            elif maze[y+dy][x+dx] == '.':
+                print("NORMAL")
+                if maze[y][x] == "[":
+                    maze[y][x] = '.'
+                    maze[y][x+1] = '.'
+                    maze[y + dy][x + dx] = '['
+                    maze[y + dy][x + dx + 1] = ']'
+                elif maze[y][x] == "[":
+                    maze[y][x] = '.'
+                    maze[y][x-1] = '.'
+                    maze[y + dy][x + dx] = ']'
+                    maze[y + dy][x + dx - 1] = '['
+                else:
+                    maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
+
+            return(x+ dx, y+dy)
+        else:
+            return cell
     else:
         print("unknown")
         assert False
