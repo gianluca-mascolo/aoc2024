@@ -7,6 +7,7 @@ DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
 
 MSG_LOST_ROBOT = "Where are the droids you are looking for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
+MSG_WRONG_STEP = "Ouch! You bite your tail"
 
 # def move(cell: tuple, maze: list, direction: bytes):
 #     xlimit = len(maze[0])
@@ -100,6 +101,7 @@ class Maze:
         self.map = {}
         self.xlimit = 0
         self.ylimit = 0
+        self.inflated = False
 
     def put(self, coord: tuple, content: bytes):
         self.map[coord] = content
@@ -139,6 +141,15 @@ class Maze:
             raise RuntimeError(MSG_HIT_WALL)
         return True
 
+    @property
+    def gpsum(self):
+        r = 0
+        if not self.inflated:
+            for coord,cell in self.map.items():
+                if cell == 'O':
+                    r += coord[0] + 100 * coord[1]
+        return r
+
 
 def move(maze: Maze, coord: tuple, direction: bytes):
     content = maze.get(coord)
@@ -149,9 +160,10 @@ def move(maze: Maze, coord: tuple, direction: bytes):
     elif next_step == "O":
         if move(maze, shift(coord, direction), direction):
             maze.push(coord, direction)
-    else:
-        return False
-
+            return True
+    elif next_step == "@":
+        raise RuntimeError(MSG_WRONG_STEP)
+    return False
 
 def shift(coord: tuple, direction: bytes):
     return tuple(map(sum, zip(coord, DIRECTIONS[direction])))
@@ -196,6 +208,7 @@ def main():
                     move(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
+            print(maze.gpsum)
 
         # if args.part == 1:
         #     for idx, direction in enumerate(moves):
