@@ -5,6 +5,8 @@ DEBUG = False
 
 DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
 
+MSG_LOST_ROBOT = "Where are the droids you are looking for?"
+MSG_HIT_WALL = "You are not stubborn enough to push a wall"
 
 # def move(cell: tuple, maze: list, direction: bytes):
 #     xlimit = len(maze[0])
@@ -120,15 +122,42 @@ class Maze:
         rpos = None
         for coord, cell in self.map.items():
             if cell == "@":
-                rpos = coord
+                if rpos is None:
+                    rpos = coord
+                else:
+                    raise RuntimeError(MSG_LOST_ROBOT)
+        if rpos is None:
+            raise RuntimeError(MSG_LOST_ROBOT)
         return rpos
+
+    def push(self, coord: tuple, direction: bytes):
+        content = self.get(coord)
+        if content in ["@", "O"]:
+            self.put(shift(coord, direction), content)
+            self.put(coord, ".")
+        elif content == "#":
+            raise RuntimeError(MSG_HIT_WALL)
+        return True
 
 
 def move(maze: Maze, coord: tuple, direction: bytes):
-    return True
+    content = maze.get(coord)
+    print(content)
+    if look(maze, coord, direction):
+        maze.push(coord, direction)
+    elif content == 'O':
+        move(maze,shift(coord,direction),direction)
 
 
-def push(coord: tuple, direction: bytes):
+def look(maze: Maze, coord: tuple, direction: bytes):
+    position = shift(coord, direction)
+    if maze.get(position) == ".":
+        return True
+    else:
+        return False
+
+
+def shift(coord: tuple, direction: bytes):
     return tuple(map(sum, zip(coord, DIRECTIONS[direction])))
 
 
@@ -163,11 +192,14 @@ def main():
                 moves.extend(m for m in line)
             line = reader.readline()
         maze.ylimit = y
-        if DEBUG:
-            maze.print()
-            print(moves)
-            print(maze.robot)
-            print(maze.xlimit, maze.ylimit)
+
+        if args.part == 1:
+            for idx, direction in enumerate(moves):
+                if DEBUG:
+                    print(idx, maze.robot, direction)
+                    move(maze, maze.robot, direction)
+                if DEBUG:
+                    maze.print()
 
         # if args.part == 1:
         #     for idx, direction in enumerate(moves):
