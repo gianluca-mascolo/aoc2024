@@ -5,7 +5,7 @@ DEBUG = False
 
 DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
 
-MSG_LOST_ROBOT = "Where are the droids you are isemptying for?"
+MSG_LOST_ROBOT = "Where are the droids you are looking for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
 
 # def move(cell: tuple, maze: list, direction: bytes):
