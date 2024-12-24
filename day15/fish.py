@@ -5,7 +5,7 @@ DEBUG = False
 
 DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
 
-MSG_LOST_ROBOT = "Where are the droids you are looking for?"
+MSG_LOST_ROBOT = "Where are the droids you are isemptying for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
 
 # def move(cell: tuple, maze: list, direction: bytes):
@@ -142,17 +142,13 @@ class Maze:
 
 def move(maze: Maze, coord: tuple, direction: bytes):
     content = maze.get(coord)
-    print(content)
-    if look(maze, coord, direction):
+    next_step = maze.get(shift(coord, direction))
+    if next_step == ".":
         maze.push(coord, direction)
-    elif content == 'O':
-        move(maze,shift(coord,direction),direction)
-
-
-def look(maze: Maze, coord: tuple, direction: bytes):
-    position = shift(coord, direction)
-    if maze.get(position) == ".":
         return True
+    elif next_step == "O":
+        if move(maze, shift(coord, direction), direction):
+            maze.push(coord, direction)
     else:
         return False
 
