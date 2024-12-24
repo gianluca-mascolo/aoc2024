@@ -63,6 +63,9 @@ class Maze:
         elif content == ']' and direction == '>':
             self.put(shift(coord, direction), content)
             self.put(coord, "[")
+        elif content in ['[',']'] and direction in ['^','v']:
+            self.put(shift(coord, direction), content)
+            self.put(coord, ".")
         elif content == "#":
             raise RuntimeError(MSG_HIT_WALL)
         return True
@@ -117,6 +120,10 @@ def move(maze: Maze, coord: tuple, direction: bytes):
             if maze.get(beyond) == '.':
                 maze.push(shift(coord,direction), direction)
                 return True
+            elif maze.get(beyond) == ']':
+                if move(maze, beyond, direction):
+                    maze.push(shift(coord,direction), direction)
+                    return True
         elif direction == '>' and next_step == '[':
             if move(maze, shift(coord, direction), direction):
                 maze.push(coord, direction)
@@ -126,6 +133,10 @@ def move(maze: Maze, coord: tuple, direction: bytes):
             if maze.get(beyond) == '.':
                 maze.push(shift(coord,direction), direction)
                 return True
+            elif maze.get(beyond) == '[':
+                if move(maze, beyond, direction):
+                    maze.push(shift(coord,direction), direction)
+                    return True
         elif direction == '^':
             return False
         elif direction == 'v':
@@ -186,7 +197,13 @@ def main():
                     maze.print()
             print(maze.gpsum)
         else:
+            if DEBUG:
+                print("Original")
+                maze.print()
             maze.inflate()
+            if DEBUG:
+                print("Inflated")
+                maze.print()
             for idx, direction in enumerate(moves):
                 if DEBUG:
                     print(idx, maze.robot, direction)
