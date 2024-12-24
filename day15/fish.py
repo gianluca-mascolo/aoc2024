@@ -128,6 +128,10 @@ def move(maze: Maze, coord: tuple, direction: bytes):
     return True
 
 
+def push(coord: tuple, direction: bytes):
+    return tuple(map(sum, zip(coord, DIRECTIONS[direction])))
+
+
 def main():
     global DEBUG
     parser = argparse.ArgumentParser()
