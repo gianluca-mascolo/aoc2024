@@ -71,6 +71,15 @@ class Maze:
             raise RuntimeError(MSG_HIT_WALL)
         return True
 
+    def companion(self,coord: tuple):
+        c = self.get(coord)
+        if c == '[':
+            return shift(coord,'>')
+        elif c == ']':
+            return shift(coord,'<')
+        else: 
+            return coord
+
     @property
     def gpsum(self):
         r = 0
@@ -112,14 +121,21 @@ def move(maze: Maze, coord: tuple, direction: bytes):
         maze.push(coord, direction)
         return True
     elif next_step == "." and current in ['[',']'] and direction in ['^','v']:
-        if current == '[':
-            closing_position = shift(coord,'>')
-        elif current == ']':
-            closing_position = shift(coord,'<')
+        closing_position = maze.companion(coord)
         if maze.get(shift(closing_position,direction)) == '.':
             maze.push(coord, direction)
             maze.push(closing_position, direction)
             return True
+    elif next_step == "." and current == '[' and direction == '<':
+        closing_position = maze.companion(coord)
+        maze.push(coord, direction)
+        maze.push(closing_position, direction)
+        return True
+    elif next_step == "." and current == ']' and direction == '>':
+        closing_position = maze.companion(coord)
+        maze.push(coord, direction)
+        maze.push(closing_position, direction)
+        return True
     elif next_step in ['[',']']:
         if direction == '<' and next_step == ']':
             if move(maze, shift(coord, direction), direction):
@@ -148,17 +164,28 @@ def move(maze: Maze, coord: tuple, direction: bytes):
                     maze.push(shift(coord,direction), direction)
                     return True
         elif direction == '^':
-            if next_step == '[':
-                closing_position = shift(shift(coord,direction),'>')
-            elif next_step == ']':
-                closing_position = shift(shift(coord,direction),'<')
+            closing_position = maze.companion(coord)
             brackets_position = [shift(coord,direction),closing_position]
             if DEBUG:
                 print(f"BRACKETS: {brackets_position}")
+                print([ maze.get(shift(bracket,direction)) == '.' for bracket in brackets_position ])
+                print([ maze.get(shift(bracket,direction)) in MATCH.keys() for bracket in brackets_position ])
             if all([ maze.get(shift(bracket,direction)) == '.' for bracket in brackets_position ]):
                 for bracket in brackets_position:
                     maze.push(bracket, direction)
                 return True
+            if all([ maze.get(shift(bracket,direction)) in MATCH.keys() for bracket in brackets_position ]):
+                attempt_move = [ move(maze, shift(bracket, direction), direction) for bracket in brackets_position ]
+                if all(attempt_move):
+                    for bracket in brackets_position:
+                        maze.push(bracket, direction)
+                    return True
+                else:
+                    for idx,attempt in enumerate(attempt_move):
+                        if attempt:
+                            bracket = brackets_position[idx]
+                            move(maze=maze,coord=shift(shift(bracket, direction),direction),direction='v')
+                    return False
             return False
         elif direction == 'v':
             return False
@@ -175,6 +202,8 @@ def move(maze: Maze, coord: tuple, direction: bytes):
 
 def shift(coord: tuple, direction: bytes):
     return tuple(map(sum, zip(coord, DIRECTIONS[direction])))
+
+
 
 
 def main():
