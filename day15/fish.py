@@ -194,7 +194,7 @@ def main():
             for idx, direction in enumerate(moves):
                 if DEBUG:
                     print(idx, maze.robot, direction.name)
-                move(maze, maze.robot, direction)
+                move2(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
 
