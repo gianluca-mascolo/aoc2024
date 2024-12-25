@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 import argparse
+from enum import Enum
 
 DEBUG = False
 
-DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
-MATCH= {'[': ']', ']': '['}
+MATCH = {"[": "]", "]": "["}
 
 MSG_LOST_ROBOT = "Where are the droids you are looking for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
 MSG_WRONG_STEP = "Ouch! You bite your tail"
+
+
+class Direction(Enum):
+    UP = "^"
+    DOWN = "v"
+    LEFT = "<"
+    RIGHT = ">"
 
 
 class Maze:
@@ -25,7 +32,7 @@ class Maze:
         if coord in self.map:
             return self.map[coord]
         else:
-            return '#'
+            return "#"
 
     def print(self):
         for y in range(self.ylimit):
@@ -52,32 +59,32 @@ class Maze:
         if content in ["@", "O"]:
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
-        elif content == '[' and direction == '<':
+        elif content == "[" and direction == "<":
             self.put(shift(coord, direction), content)
             self.put(coord, "]")
-        elif content == ']' and direction == '<':
+        elif content == "]" and direction == "<":
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
-        elif content == '[' and direction == '>':
+        elif content == "[" and direction == ">":
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
-        elif content == ']' and direction == '>':
+        elif content == "]" and direction == ">":
             self.put(shift(coord, direction), content)
             self.put(coord, "[")
-        elif content in ['[',']'] and direction in ['^','v']:
+        elif content in ["[", "]"] and direction in ["^", "v"]:
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
         elif content == "#":
             raise RuntimeError(MSG_HIT_WALL)
         return True
 
-    def companion(self,coord: tuple):
+    def companion(self, coord: tuple):
         c = self.get(coord)
-        if c == '[':
-            return shift(coord,'>')
-        elif c == ']':
-            return shift(coord,'<')
-        else: 
+        if c == "[":
+            return shift(coord, ">")
+        elif c == "]":
+            return shift(coord, "<")
+        else:
             return coord
 
     @property
@@ -117,77 +124,77 @@ class Maze:
 def move(maze: Maze, coord: tuple, direction: bytes):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
-    if next_step == "." and current not in ['[',']']:
+    if next_step == "." and current not in ["[", "]"]:
         maze.push(coord, direction)
         return True
-    elif next_step == "." and current in ['[',']'] and direction in ['^','v']:
+    elif next_step == "." and current in ["[", "]"] and direction in ["^", "v"]:
         closing_position = maze.companion(coord)
-        if maze.get(shift(closing_position,direction)) == '.':
+        if maze.get(shift(closing_position, direction)) == ".":
             maze.push(coord, direction)
             maze.push(closing_position, direction)
             return True
-    elif next_step == "." and current == '[' and direction == '<':
+    elif next_step == "." and current == "[" and direction == "<":
         closing_position = maze.companion(coord)
         maze.push(coord, direction)
         maze.push(closing_position, direction)
         return True
-    elif next_step == "." and current == ']' and direction == '>':
+    elif next_step == "." and current == "]" and direction == ">":
         closing_position = maze.companion(coord)
         maze.push(coord, direction)
         maze.push(closing_position, direction)
         return True
-    elif next_step in ['[',']']:
-        if direction == '<' and next_step == ']':
+    elif next_step in ["[", "]"]:
+        if direction == "<" and next_step == "]":
             if move(maze, shift(coord, direction), direction):
                 maze.push(coord, direction)
                 return True
-        if direction == '<' and next_step == '[':
-            beyond = shift(shift(coord,direction),direction)
-            if maze.get(beyond) == '.':
-                maze.push(shift(coord,direction), direction)
+        if direction == "<" and next_step == "[":
+            beyond = shift(shift(coord, direction), direction)
+            if maze.get(beyond) == ".":
+                maze.push(shift(coord, direction), direction)
                 return True
-            elif maze.get(beyond) == ']':
+            elif maze.get(beyond) == "]":
                 if move(maze, beyond, direction):
-                    maze.push(shift(coord,direction), direction)
+                    maze.push(shift(coord, direction), direction)
                     return True
-        elif direction == '>' and next_step == '[':
+        elif direction == ">" and next_step == "[":
             if move(maze, shift(coord, direction), direction):
                 maze.push(coord, direction)
                 return True
-        elif direction == '>' and next_step == ']':
-            beyond = shift(shift(coord,direction),direction)
-            if maze.get(beyond) == '.':
-                maze.push(shift(coord,direction), direction)
+        elif direction == ">" and next_step == "]":
+            beyond = shift(shift(coord, direction), direction)
+            if maze.get(beyond) == ".":
+                maze.push(shift(coord, direction), direction)
                 return True
-            elif maze.get(beyond) == '[':
+            elif maze.get(beyond) == "[":
                 if move(maze, beyond, direction):
-                    maze.push(shift(coord,direction), direction)
+                    maze.push(shift(coord, direction), direction)
                     return True
-        elif direction == '^':
+        elif direction == "^":
             closing_position = maze.companion(coord)
-            brackets_position = [shift(coord,direction),closing_position]
+            brackets_position = [shift(coord, direction), closing_position]
             if DEBUG:
                 print(f"BRACKETS: {brackets_position}")
-                print([ maze.get(shift(bracket,direction)) == '.' for bracket in brackets_position ])
-                print([ maze.get(shift(bracket,direction)) in MATCH.keys() for bracket in brackets_position ])
-            if all([ maze.get(shift(bracket,direction)) == '.' for bracket in brackets_position ]):
+                print([maze.get(shift(bracket, direction)) == "." for bracket in brackets_position])
+                print([maze.get(shift(bracket, direction)) in MATCH.keys() for bracket in brackets_position])
+            if all([maze.get(shift(bracket, direction)) == "." for bracket in brackets_position]):
                 for bracket in brackets_position:
                     maze.push(bracket, direction)
                 return True
-            if all([ maze.get(shift(bracket,direction)) in MATCH.keys() for bracket in brackets_position ]):
-                attempt_move = [ move(maze, shift(bracket, direction), direction) for bracket in brackets_position ]
+            if all([maze.get(shift(bracket, direction)) in MATCH.keys() for bracket in brackets_position]):
+                attempt_move = [move(maze, shift(bracket, direction), direction) for bracket in brackets_position]
                 if all(attempt_move):
                     for bracket in brackets_position:
                         maze.push(bracket, direction)
                     return True
                 else:
-                    for idx,attempt in enumerate(attempt_move):
+                    for idx, attempt in enumerate(attempt_move):
                         if attempt:
                             bracket = brackets_position[idx]
-                            move(maze=maze,coord=shift(shift(bracket, direction),direction),direction='v')
+                            move(maze=maze, coord=shift(shift(bracket, direction), direction), direction="v")
                     return False
             return False
-        elif direction == 'v':
+        elif direction == "v":
             return False
 
         return False
@@ -201,9 +208,8 @@ def move(maze: Maze, coord: tuple, direction: bytes):
 
 
 def shift(coord: tuple, direction: bytes):
-    return tuple(map(sum, zip(coord, DIRECTIONS[direction])))
-
-
+    delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
+    return tuple(map(sum, zip(coord, delta[direction])))
 
 
 def main():
@@ -234,7 +240,7 @@ def main():
                     maze.put((x, y), cell)
                 y += 1
             elif loading == "MOVES":
-                moves.extend(m for m in line)
+                moves.extend(Direction(m) for m in line)
             line = reader.readline()
         maze.ylimit = y
 
