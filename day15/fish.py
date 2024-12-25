@@ -4,6 +4,7 @@ import argparse
 DEBUG = False
 
 DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
+MATCH= {'[': ']', ']': '['}
 
 MSG_LOST_ROBOT = "Where are the droids you are looking for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
@@ -24,7 +25,7 @@ class Maze:
         if coord in self.map:
             return self.map[coord]
         else:
-            return None
+            return '#'
 
     def print(self):
         for y in range(self.ylimit):
@@ -110,6 +111,15 @@ def move(maze: Maze, coord: tuple, direction: bytes):
     if next_step == "." and current not in ['[',']']:
         maze.push(coord, direction)
         return True
+    elif next_step == "." and current in ['[',']'] and direction in ['^','v']:
+        if current == '[':
+            closing_position = shift(coord,'>')
+        elif current == ']':
+            closing_position = shift(coord,'<')
+        if maze.get(shift(closing_position,direction)) == '.':
+            maze.push(coord, direction)
+            maze.push(closing_position, direction)
+            return True
     elif next_step in ['[',']']:
         if direction == '<' and next_step == ']':
             if move(maze, shift(coord, direction), direction):
@@ -138,6 +148,17 @@ def move(maze: Maze, coord: tuple, direction: bytes):
                     maze.push(shift(coord,direction), direction)
                     return True
         elif direction == '^':
+            if next_step == '[':
+                closing_position = shift(shift(coord,direction),'>')
+            elif next_step == ']':
+                closing_position = shift(shift(coord,direction),'<')
+            brackets_position = [shift(coord,direction),closing_position]
+            if DEBUG:
+                print(f"BRACKETS: {brackets_position}")
+            if all([ maze.get(shift(bracket,direction)) == '.' for bracket in brackets_position ]):
+                for bracket in brackets_position:
+                    maze.push(bracket, direction)
+                return True
             return False
         elif direction == 'v':
             return False
