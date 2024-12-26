@@ -159,8 +159,8 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
             if DEBUG:
                 print(f"{loopstamp} - checking {shift(companion,direction)}")
-            read_again = maze.get(shift(companion,direction))
-            if read_again == '.':
+            read_again = maze.get(shift(companion, direction))
+            if read_again == ".":
                 maze.push(coord, direction)
                 return True
             elif move2(maze, shift(companion, direction), direction):
