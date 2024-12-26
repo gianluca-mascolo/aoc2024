@@ -171,7 +171,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
             else:
                 # rollback
                 if DEBUG:
-                    print("ROLLBACK!")
+                    print(f"{loopstamp} ROLLBACK!")
                 reverse = {Direction.UP, Direction.DOWN}
                 reverse.remove(direction)
                 move2(maze, beyond, reverse.pop())
