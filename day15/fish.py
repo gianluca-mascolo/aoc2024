@@ -154,12 +154,13 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
     elif next_step in MATCH.keys():
         beyond = shift(shift(coord, direction), direction)
         companion = maze.companion(coord)
+        prima = maze.get(shift(companion, direction))
         if DEBUG:
             print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
         if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
-            if DEBUG:
-                print(f"{loopstamp} - checking {shift(companion,direction)}")
             read_again = maze.get(shift(companion, direction))
+            if DEBUG:
+                print(f"{loopstamp} - checking {shift(companion,direction)} prima: {prima} dopo: {read_again}")
             if read_again == ".":
                 maze.push(coord, direction)
                 return True
