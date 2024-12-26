@@ -54,7 +54,7 @@ class Maze:
             raise RuntimeError(MSG_LOST_ROBOT)
         return rpos
 
-    def push(self, coord: tuple, direction: bytes):
+    def push(self, coord: tuple, direction: Direction):
         content = self.get(coord)
         if content in ["@", "O"]:
             next_step = self.get(shift(coord, direction))
@@ -62,14 +62,14 @@ class Maze:
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
         if content in MATCH.keys():
+            next_step = self.get(shift(coord, direction))
+            assert next_step in ['.', MATCH[content]]
             for c in [ coord, self.companion(coord) ]:
                 self.put(c,".")
             self.put(shift(coord,direction), content)
             self.put(self.companion(shift(coord,direction)), MATCH[content])
-            return True
         elif content == "#":
             raise RuntimeError(MSG_HIT_WALL)
-        return False
 
     def companion(self, coord: tuple):
         c = self.get(coord)
@@ -114,7 +114,7 @@ class Maze:
         return True
 
 
-def move(maze: Maze, coord: tuple, direction: bytes):
+def move(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if next_step == ".":
@@ -128,7 +128,7 @@ def move(maze: Maze, coord: tuple, direction: bytes):
         raise RuntimeError(MSG_WRONG_STEP)
     return False
 
-def move2(maze: Maze, coord: tuple, direction: bytes):
+def move2(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if next_step == "." and current == '@':
@@ -138,7 +138,7 @@ def move2(maze: Maze, coord: tuple, direction: bytes):
         raise RuntimeError(MSG_WRONG_STEP)
     return False
 
-def shift(coord: tuple, direction: bytes):
+def shift(coord: tuple, direction: Direction):
     delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
     return tuple(map(sum, zip(coord, delta[direction])))
 
