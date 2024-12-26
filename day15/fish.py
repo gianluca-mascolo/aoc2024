@@ -144,6 +144,8 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
             if direction in [Direction.UP, Direction.DOWN]:
                 ccoord = shift(maze.companion(coord), direction)
                 if maze.get(ccoord) == ".":
+                    if DEBUG:
+                        print(f"MOVING {coord} {current} {direction.name}")
                     maze.push(coord, direction)
                     return True
             elif direction in [Direction.LEFT, Direction.RIGHT]:
@@ -154,9 +156,19 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         if DEBUG:
             print(f"beyond {beyond} {maze.get(beyond)}")
         if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
-            maze.push(coord, direction)
-            return True
-        elif direction in [Direction.LEFT, Direction.RIGHT] and move2(maze, shift(shift(coord, direction), direction), direction):
+            print(f"checking {shift(maze.companion(coord),direction)}")
+            if move2(maze,shift(maze.companion(coord),direction), direction):
+                if DEBUG:
+                    print(f"PUSHING {coord} {current} {direction.name}")
+                maze.push(coord, direction)
+                return True
+            else:
+                # rollback
+                reverse = {Direction.UP, Direction.DOWN}
+                reverse.remove(direction)
+                move2(maze,beyond, reverse.pop())
+                return False
+        elif direction in [Direction.LEFT, Direction.RIGHT] and move2(maze, beyond, direction):
             maze.push(coord, direction)
             return True
     elif next_step == "@":
