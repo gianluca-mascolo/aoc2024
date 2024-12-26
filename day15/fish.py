@@ -58,16 +58,16 @@ class Maze:
         content = self.get(coord)
         if content in ["@", "O"]:
             next_step = self.get(shift(coord, direction))
-            assert next_step == '.'
+            assert next_step == "."
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
         if content in MATCH.keys():
             next_step = self.get(shift(coord, direction))
-            assert next_step in ['.', MATCH[content]]
-            for c in [ coord, self.companion(coord) ]:
-                self.put(c,".")
-            self.put(shift(coord,direction), content)
-            self.put(self.companion(shift(coord,direction)), MATCH[content])
+            assert next_step in [".", MATCH[content]]
+            for c in [coord, self.companion(coord)]:
+                self.put(c, ".")
+            self.put(shift(coord, direction), content)
+            self.put(self.companion(shift(coord, direction)), MATCH[content])
         elif content == "#":
             raise RuntimeError(MSG_HIT_WALL)
 
@@ -128,43 +128,46 @@ def move(maze: Maze, coord: tuple, direction: Direction):
         raise RuntimeError(MSG_WRONG_STEP)
     return False
 
+
 def move2(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(coord,direction.name,current,next_step,maze.companion(coord),maze.get(maze.companion(coord))))
+        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord))))
     if next_step == ".":
-        if current == '@':
+        if current == "@":
             maze.push(coord, direction)
             return True
         elif current in MATCH.keys():
             companion = maze.get(maze.companion(coord))
-            shift(maze.companion(coord),direction)
-            if direction in [ Direction.UP, Direction.DOWN]:
-                ccoord = shift(maze.companion(coord),direction)
-                if maze.get(ccoord) == '.':
+            shift(maze.companion(coord), direction)
+            if direction in [Direction.UP, Direction.DOWN]:
+                ccoord = shift(maze.companion(coord), direction)
+                if maze.get(ccoord) == ".":
                     maze.push(coord, direction)
                     return True
-            elif direction in [ Direction.LEFT, Direction.RIGHT]:
+            elif direction in [Direction.LEFT, Direction.RIGHT]:
                 maze.push(coord, direction)
                 return True
     elif next_step in MATCH.keys():
-        beyond = shift(shift(coord, direction),direction)
+        beyond = shift(shift(coord, direction), direction)
         if DEBUG:
             print(f"beyond {beyond} {maze.get(beyond)}")
-        if direction in [ Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
+        if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
             maze.push(coord, direction)
             return True
-        elif direction in [ Direction.LEFT, Direction.RIGHT] and move2(maze, shift(shift(coord, direction),direction), direction):
+        elif direction in [Direction.LEFT, Direction.RIGHT] and move2(maze, shift(shift(coord, direction), direction), direction):
             maze.push(coord, direction)
             return True
     elif next_step == "@":
         raise RuntimeError(MSG_WRONG_STEP)
     return False
 
+
 def shift(coord: tuple, direction: Direction):
     delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
     return tuple(map(sum, zip(coord, delta[direction])))
+
 
 def main():
     global DEBUG
