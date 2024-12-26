@@ -74,9 +74,9 @@ class Maze:
     def companion(self, coord: tuple):
         c = self.get(coord)
         if c == "[":
-            return shift(coord, ">")
+            return shift(coord, Direction.RIGHT)
         elif c == "]":
-            return shift(coord, "<")
+            return shift(coord, Direction.LEFT)
         else:
             return coord
 
@@ -131,9 +131,33 @@ def move(maze: Maze, coord: tuple, direction: Direction):
 def move2(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
-    if next_step == "." and current == '@':
-        maze.push(coord, direction)
-        return True
+    if DEBUG:
+        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(coord,direction.name,current,next_step,maze.companion(coord),maze.get(maze.companion(coord))))
+    if next_step == ".":
+        if current == '@':
+            maze.push(coord, direction)
+            return True
+        elif current in MATCH.keys():
+            companion = maze.get(maze.companion(coord))
+            shift(maze.companion(coord),direction)
+            if direction in [ Direction.UP, Direction.DOWN]:
+                ccoord = shift(maze.companion(coord),direction)
+                if maze.get(ccoord) == '.':
+                    maze.push(coord, direction)
+                    return True
+            elif direction in [ Direction.LEFT, Direction.RIGHT]:
+                maze.push(coord, direction)
+                return True
+    elif next_step in MATCH.keys():
+        beyond = shift(shift(coord, direction),direction)
+        if DEBUG:
+            print(f"beyond {beyond} {maze.get(beyond)}")
+        if direction in [ Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
+            maze.push(coord, direction)
+            return True
+        elif direction in [ Direction.LEFT, Direction.RIGHT] and move2(maze, shift(shift(coord, direction),direction), direction):
+            maze.push(coord, direction)
+            return True
     elif next_step == "@":
         raise RuntimeError(MSG_WRONG_STEP)
     return False
@@ -141,7 +165,6 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
 def shift(coord: tuple, direction: Direction):
     delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
     return tuple(map(sum, zip(coord, delta[direction])))
-
 
 def main():
     global DEBUG
