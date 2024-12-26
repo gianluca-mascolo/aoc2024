@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from enum import Enum
+from random import randint
 
 DEBUG = False
 
@@ -130,22 +131,21 @@ def move(maze: Maze, coord: tuple, direction: Direction):
 
 
 def move2(maze: Maze, coord: tuple, direction: Direction):
+    loopstamp = str(randint(0, 999999)).zfill(6)
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord))))
+        print("{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord))))
     if next_step == ".":
         if current == "@":
             maze.push(coord, direction)
             return True
         elif current in MATCH.keys():
-            companion = maze.get(maze.companion(coord))
-            shift(maze.companion(coord), direction)
             if direction in [Direction.UP, Direction.DOWN]:
                 ccoord = shift(maze.companion(coord), direction)
                 if maze.get(ccoord) == ".":
                     if DEBUG:
-                        print(f"MOVING {coord} {current} {direction.name}")
+                        print(f"{loopstamp} - MOVING {coord} {current} {direction.name}")
                     maze.push(coord, direction)
                     return True
             elif direction in [Direction.LEFT, Direction.RIGHT]:
@@ -153,20 +153,28 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                 return True
     elif next_step in MATCH.keys():
         beyond = shift(shift(coord, direction), direction)
+        companion = maze.companion(coord)
         if DEBUG:
-            print(f"beyond {beyond} {maze.get(beyond)}")
+            print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
         if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
-            print(f"checking {shift(maze.companion(coord),direction)}")
-            if move2(maze,shift(maze.companion(coord),direction), direction):
+            if DEBUG:
+                print(f"{loopstamp} - checking {shift(companion,direction)}")
+            read_again = maze.get(shift(companion,direction))
+            if read_again == '.':
+                maze.push(coord, direction)
+                return True
+            elif move2(maze, shift(companion, direction), direction):
                 if DEBUG:
-                    print(f"PUSHING {coord} {current} {direction.name}")
+                    print(f"{loopstamp} - PUSHING {coord} {current} {direction.name}")
                 maze.push(coord, direction)
                 return True
             else:
                 # rollback
+                if DEBUG:
+                    print("ROLLBACK!")
                 reverse = {Direction.UP, Direction.DOWN}
                 reverse.remove(direction)
-                move2(maze,beyond, reverse.pop())
+                move2(maze, beyond, reverse.pop())
                 return False
         elif direction in [Direction.LEFT, Direction.RIGHT] and move2(maze, beyond, direction):
             maze.push(coord, direction)
@@ -235,6 +243,7 @@ def main():
                 move2(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
+            print(maze.gpsum)
 
 
 if __name__ == "__main__":
