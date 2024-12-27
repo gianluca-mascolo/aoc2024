@@ -91,7 +91,25 @@ class Maze:
         else:
             for coord, cell in self.map.items():
                 if cell == "[":
+                    #coord[0]
+                    #self.xlimit - coord[0] - 2
+                    #coord[1]
+                    #self.ylimit - coord[1] - 1 
+                    #r += min(coord[0],self.xlimit - coord[0] - 2) + 100 * min(coord[1],self.ylimit - coord[1] - 1)
                     r += coord[0] + 100 * coord[1]
+        return r
+
+    @property
+    def boxes(self):
+        r = 0
+        if not self.inflated:
+            for coord, cell in self.map.items():
+                if cell == "O":
+                    r += 1
+        else:
+            for coord, cell in self.map.items():
+                if cell == "[":
+                    r += 1
         return r
 
     def inflate(self):
@@ -135,7 +153,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print("{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord))))
+        print("{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {} box {}".format(loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)),maze.gpsum,maze.boxes))
     if current == "#":
         return False
     if next_step == ".":
@@ -148,6 +166,9 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                 if maze.get(ccoord) == ".":
                     if DEBUG:
                         print(f"{loopstamp} - MOVING {coord} {current} {direction.name}")
+                    maze.push(coord, direction)
+                    return True
+                elif maze.get(ccoord) in MATCH.keys() and move2(maze,ccoord,direction):
                     maze.push(coord, direction)
                     return True
             elif direction in [Direction.LEFT, Direction.RIGHT]:
@@ -248,6 +269,26 @@ def main():
                     maze.print()
             print(maze.gpsum)
 
+    #     if DEBUG:
+    #         print(maze.xlimit)
+
+    # with open("example6", "r") as reader:
+    #     line = reader.readline()
+    #     loading = "MAZE"
+    #     testmaze = Maze()
+    #     y = 0
+    #     while line != "":  # The EOF char is an empty string
+    #         line = line.rstrip()
+    #         testmaze.xlimit = len(line)
+    #         for x, cell in enumerate(line):
+    #             testmaze.put((x, y), cell)
+    #         y += 1
+    #         line = reader.readline()
+    #     testmaze.ylimit = y
+    # testmaze.inflated = True
+    # print("Ciccio")
+    # testmaze.print()
+    # print(testmaze.gpsum)
 
 if __name__ == "__main__":
     main()
