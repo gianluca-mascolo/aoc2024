@@ -110,7 +110,7 @@ class Maze:
                     newmap[(2 * x, y)] = "@"
                     newmap[(2 * x + 1, y)] = "."
             self.map = {k: v for k, v in newmap.items()}
-            self.xlimit = 2 * x + 1
+            self.xlimit = 2 * x + 2
             self.inflated = True
         return True
 
@@ -136,6 +136,8 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
         print("{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {}".format(loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord))))
+    if current == "#":
+        return False
     if next_step == ".":
         if current == "@":
             maze.push(coord, direction)
