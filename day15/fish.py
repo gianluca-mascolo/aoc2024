@@ -204,7 +204,20 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                     print(f"{loopstamp} ROLLBACK!")
                 reverse = {Direction.UP, Direction.DOWN}
                 reverse.remove(direction)
-                move2(maze, beyond, reverse.pop())
+                revdir = reverse.pop()
+                pos = beyond
+                c = maze.get(pos)
+                p = c
+                stack = []
+                while c == p:
+                    stack.append(pos)
+                    pos = shift(pos,direction)
+                    c = maze.get(pos)
+                reverse = {Direction.UP, Direction.DOWN}
+                reverse.remove(direction)
+                revdir = reverse.pop()
+                for pos in stack:
+                    move2(maze, pos, revdir)
                 return False
         elif direction in [Direction.LEFT, Direction.RIGHT] and move2(maze, beyond, direction):
             maze.push(coord, direction)
@@ -274,7 +287,7 @@ def main():
                 move2(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
-                if idx >=2387 and idx <= 2390:
+                if idx >=14505 and idx <= 14509:
                     maze.dump(f"dump{str(idx).zfill(8)}.txt")
             print(maze.gpsum)
 
