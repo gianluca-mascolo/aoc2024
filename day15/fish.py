@@ -42,6 +42,12 @@ class Maze:
                 line.append(self.get((x, y)))
             print("".join(line))
 
+    def dump(self,filename):
+        with open(filename, "w") as f:
+            for y in range(self.ylimit):
+                for x in range(self.xlimit):
+                    f.write(f"({x},{y}): {self.get((x,y))}\n")
+
     @property
     def robot(self):
         rpos = None
@@ -180,7 +186,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         prima = maze.get(shift(companion, direction))
         if DEBUG:
             print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
-        if direction in [Direction.UP, Direction.DOWN] and move2(maze, shift(coord, direction), direction):
+        if direction in [Direction.UP, Direction.DOWN] and maze.get(shift(companion,direction)) in ['.', '[', ']'] and move2(maze, shift(coord, direction), direction):
             read_again = maze.get(shift(companion, direction))
             if DEBUG:
                 print(f"{loopstamp} - checking {shift(companion,direction)} prima: {prima} dopo: {read_again}")
@@ -263,10 +269,13 @@ def main():
                 maze.print()
             for idx, direction in enumerate(moves):
                 if DEBUG:
+                    print(f"STEP: {idx} {maze.gpsum}")
                     print(idx, maze.robot, direction.name)
                 move2(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
+                if idx >=2387 and idx <= 2390:
+                    maze.dump(f"dump{str(idx).zfill(8)}.txt")
             print(maze.gpsum)
 
     #     if DEBUG:
