@@ -122,7 +122,7 @@ def move(maze: Maze, coord: tuple, direction: Direction):
             print(f"ls: {loopstack} s: {stack} c: {check}")
         ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
         if DEBUG:
-            print(ns)
+            print("ns",ns)
         if any(n in "#" for n in ns.values()):
             if DEBUG:
                 print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
@@ -130,12 +130,29 @@ def move(maze: Maze, coord: tuple, direction: Direction):
         elif any(n in ['[',']','O'] for n in ns.values()):
             has_bracket = True
             sext = [q for q in check if maze.get(shift(q, direction)) in ['[',']','O']]
+            if direction == Direction.LEFT:
+                sdict = {q[0]: q for q in sext}
+                print("*", sdict)
+                sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
+            elif direction == Direction.RIGHT:
+                sdict = {q[0]: q for q in sext}
+                print("*", sdict)
+                sext = [ sdict[q] for q in sorted(sdict.keys()) ]
             stack.extend([q for q in sext if q not in stack])
             check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
         elif all(n == "." for n in ns.values()):
             has_bracket = False
             can_move = True
-            stack.extend([q for q in check if q not in stack])
+            sext = [q for q in check if q not in stack]
+            if direction == Direction.LEFT:
+                sdict = {q[0]: q for q in sext}
+                print("*", sdict)
+                sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
+            elif direction == Direction.RIGHT:
+                sdict = {q[0]: q for q in sext}
+                print("*", sdict)
+                sext = [ sdict[q] for q in sorted(sdict.keys()) ]
+            stack.extend([q for q in sext if q not in stack])
         else:
             has_bracket = False
             stack.extend([q for q in check if q not in stack])
@@ -195,6 +212,8 @@ def main():
                 print(idx, maze.robot, direction.name)
             m = move(maze, maze.robot, direction)
             for c in m:
+                if DEBUG:
+                    print(f"PUSHING {c} {direction.name}")
                 maze.push(c,direction)
             if DEBUG:
                 maze.print()
