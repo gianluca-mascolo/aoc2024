@@ -42,7 +42,7 @@ class Maze:
                 line.append(self.get((x, y)))
             print("".join(line))
 
-    def dump(self,filename):
+    def dump(self, filename):
         with open(filename, "w") as f:
             for y in range(self.ylimit):
                 for x in range(self.xlimit):
@@ -97,11 +97,11 @@ class Maze:
         else:
             for coord, cell in self.map.items():
                 if cell == "[":
-                    #coord[0]
-                    #self.xlimit - coord[0] - 2
-                    #coord[1]
-                    #self.ylimit - coord[1] - 1 
-                    #r += min(coord[0],self.xlimit - coord[0] - 2) + 100 * min(coord[1],self.ylimit - coord[1] - 1)
+                    # coord[0]
+                    # self.xlimit - coord[0] - 2
+                    # coord[1]
+                    # self.ylimit - coord[1] - 1
+                    # r += min(coord[0],self.xlimit - coord[0] - 2) + 100 * min(coord[1],self.ylimit - coord[1] - 1)
                     r += coord[0] + 100 * coord[1]
         return r
 
@@ -159,7 +159,11 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print("{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {} box {}".format(loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)),maze.gpsum,maze.boxes))
+        print(
+            "{} - coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {} box {}".format(
+                loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum, maze.boxes
+            )
+        )
     if current == "#":
         return False
     if next_step == ".":
@@ -174,7 +178,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                         print(f"{loopstamp} - MOVING {coord} {current} {direction.name}")
                     maze.push(coord, direction)
                     return True
-                elif maze.get(ccoord) in MATCH.keys() and move2(maze,ccoord,direction):
+                elif maze.get(ccoord) in MATCH.keys() and move2(maze, ccoord, direction):
                     maze.push(coord, direction)
                     return True
             elif direction in [Direction.LEFT, Direction.RIGHT]:
@@ -186,7 +190,39 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         prima = maze.get(shift(companion, direction))
         if DEBUG:
             print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
-        if direction in [Direction.UP, Direction.DOWN] and maze.get(shift(companion,direction)) in ['.', '[', ']'] and move2(maze, shift(coord, direction), direction):
+        if direction in [Direction.UP, Direction.DOWN]:
+
+            has_bracket = True
+            stack = []
+            check = {coord}
+            loopstack = 0
+            can_move = False
+            while has_bracket and current == "@":
+                print(f"ls: {loopstack} s: {stack} c: {check}")
+                # print([maze.get(shift(c,direction)) in MATCH.keys() for c in check])
+                ns = {c: maze.get(shift(c, direction)) for c in check}
+                print(ns)
+                if any(n in "#" for n in ns.values()):
+                    print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
+                    has_bracket = False
+                elif any(n in MATCH.keys() for n in ns.values()):
+                    has_bracket = True
+                    sext = [q for q in check if maze.get(shift(q, direction)) in MATCH.keys()]
+                    stack.extend(sext)
+                    check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
+                elif all(n == "." for n in ns.values()):
+                    has_bracket = False
+                    can_move = True
+                    stack.extend(list(check))
+                else:
+                    has_bracket = False
+                    stack.extend(list(check))
+                loopstack += 1
+            if current == "@":
+                print("<stack>")
+                print(can_move, stack)
+                print("</stack>")
+        if direction in [Direction.UP, Direction.DOWN] and maze.get(shift(companion, direction)) in [".", "[", "]"] and move2(maze, shift(coord, direction), direction):
             read_again = maze.get(shift(companion, direction))
             if DEBUG:
                 print(f"{loopstamp} - checking {shift(companion,direction)} prima: {prima} dopo: {read_again}")
@@ -211,7 +247,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                 stack = []
                 while c == p:
                     stack.append(pos)
-                    pos = shift(pos,direction)
+                    pos = shift(pos, direction)
                     c = maze.get(pos)
                 reverse = {Direction.UP, Direction.DOWN}
                 reverse.remove(direction)
@@ -287,7 +323,7 @@ def main():
                 move2(maze, maze.robot, direction)
                 if DEBUG:
                     maze.print()
-                if idx >=14505 and idx <= 14509:
+                if idx >= 14505 and idx <= 14509:
                     maze.dump(f"dump{str(idx).zfill(8)}.txt")
             print(maze.gpsum)
 
@@ -311,6 +347,7 @@ def main():
     # print("Ciccio")
     # testmaze.print()
     # print(testmaze.gpsum)
+
 
 if __name__ == "__main__":
     main()
