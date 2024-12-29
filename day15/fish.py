@@ -164,6 +164,37 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
                 loopstamp, coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum, maze.boxes
             )
         )
+        has_bracket = True
+        stack = []
+        check = {coord}
+        loopstack = 0
+        can_move = False
+        while has_bracket and current == "@":
+            print(f"ls: {loopstack} s: {stack} c: {check}")
+            # print([maze.get(shift(c,direction)) in MATCH.keys() for c in check])
+            ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
+            print(ns)
+            if any(n in "#" for n in ns.values()):
+                print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
+                has_bracket = False
+            elif any(n in MATCH.keys() for n in ns.values()):
+                has_bracket = True
+                sext = [q for q in check if maze.get(shift(q, direction)) in MATCH.keys()]
+                stack.extend([q for q in sext if q not in stack])
+                check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
+            elif all(n == "." for n in ns.values()):
+                has_bracket = False
+                can_move = True
+                stack.extend([q for q in check if q not in stack])
+            else:
+                has_bracket = False
+                stack.extend([q for q in check if q not in stack])
+            loopstack += 1
+        if current == "@":
+            print("<stack>")
+            print(can_move, stack)
+            print("</stack>")
+
     if current == "#":
         return False
     if next_step == ".":
@@ -190,38 +221,9 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         prima = maze.get(shift(companion, direction))
         if DEBUG:
             print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
-        if direction in [Direction.UP, Direction.DOWN]:
+        #if direction in [Direction.UP, Direction.DOWN]:
 
-            has_bracket = True
-            stack = []
-            check = {coord}
-            loopstack = 0
-            can_move = False
-            while has_bracket and current == "@":
-                print(f"ls: {loopstack} s: {stack} c: {check}")
-                # print([maze.get(shift(c,direction)) in MATCH.keys() for c in check])
-                ns = {c: maze.get(shift(c, direction)) for c in check}
-                print(ns)
-                if any(n in "#" for n in ns.values()):
-                    print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
-                    has_bracket = False
-                elif any(n in MATCH.keys() for n in ns.values()):
-                    has_bracket = True
-                    sext = [q for q in check if maze.get(shift(q, direction)) in MATCH.keys()]
-                    stack.extend(sext)
-                    check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
-                elif all(n == "." for n in ns.values()):
-                    has_bracket = False
-                    can_move = True
-                    stack.extend(list(check))
-                else:
-                    has_bracket = False
-                    stack.extend(list(check))
-                loopstack += 1
-            if current == "@":
-                print("<stack>")
-                print(can_move, stack)
-                print("</stack>")
+
         if direction in [Direction.UP, Direction.DOWN] and maze.get(shift(companion, direction)) in [".", "[", "]"] and move2(maze, shift(coord, direction), direction):
             read_again = maze.get(shift(companion, direction))
             if DEBUG:
