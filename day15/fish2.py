@@ -25,7 +25,7 @@ class Maze:
     def put(self, coord: tuple, content: bytes):
         self.map[coord] = content
 
-    def get(self, coord: tuple):
+    def get(self, coord: tuple) -> bytes:
         if coord in self.map:
             return self.map[coord]
         else:
@@ -76,7 +76,7 @@ class Maze:
         else:
             return []
 
-    def complement(self, coord: tuple):
+    def complement(self, coord: tuple) -> tuple:
         c = self.get(coord)
         if c == "[":
             return shift(coord, Direction.RIGHT)
@@ -111,15 +111,14 @@ class Maze:
             self.map = {k: v for k, v in newmap.items()}
             self.xlimit = 2 * x + 2
             self.inflated = True
-        return True
 
 
-def shift(coord: tuple, direction: Direction):
+def shift(coord: tuple, direction: Direction) -> tuple:
     delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
     return tuple(map(sum, zip(coord, delta[direction])))
 
 
-def move(maze: Maze, coord: tuple, direction: Direction):
+def move(maze: Maze, coord: tuple, direction: Direction) -> list:
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
