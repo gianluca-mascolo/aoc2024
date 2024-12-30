@@ -118,7 +118,7 @@ def shift(coord: tuple, direction: Direction) -> tuple:
     return tuple(map(sum, zip(coord, delta[direction])))
 
 
-def move(maze: Maze, coord: tuple, direction: Direction) -> list:
+def boxchain(maze: Maze, coord: tuple, direction: Direction) -> list:
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     has_bracket = True
@@ -213,14 +213,14 @@ def main():
         for idx, direction in enumerate(moves):
             if DEBUG:
                 print("STEP: {} ROBOT: {} DIRECTION: {}".format(idx, maze.robot, direction.name))
-            moves = move(maze, maze.robot, direction)
+            blocks = boxchain(maze, maze.robot, direction)
             if DEBUG:
-                if len(moves):
-                    print(f"MOVES STACK: {moves}")
+                if len(blocks):
+                    print(f"MOVES STACK: {blocks}")
                 else:
                     print("NOT MOVING")
             touched = []
-            for coord in moves:
+            for coord in blocks:
                 if coord not in touched:
                     touched.extend(maze.push(coord, direction))
 
