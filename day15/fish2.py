@@ -60,13 +60,13 @@ class Maze:
             self.print()
             raise RuntimeError(MSG_HIT_WALL)
         elif content in brackets.keys() and direction in [Direction.UP, Direction.DOWN]:
-            bracket_couple = [coord, self.companion(coord)]
+            bracket_couple = [coord, self.complement(coord)]
             next_step = self.get(shift(coord, direction))
             assert all(self.get(shift(c, direction)) == "." for c in bracket_couple)
             for c in bracket_couple:
                 self.put(c, ".")
             self.put(shift(coord, direction), content)
-            self.put(self.companion(shift(coord, direction)), brackets[content])
+            self.put(self.complement(shift(coord, direction)), brackets[content])
             return bracket_couple
         elif content in ["@", "O"] + list(brackets.keys()):
             assert next_step == "."
@@ -76,7 +76,7 @@ class Maze:
         else:
             return []
 
-    def companion(self, coord: tuple):
+    def complement(self, coord: tuple):
         c = self.get(coord)
         if c == "[":
             return shift(coord, Direction.RIGHT)
@@ -123,7 +123,7 @@ def move(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {}".format(coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum))
+        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {}".format(coord, direction.name, current, next_step, maze.complement(coord), maze.get(maze.complement(coord)), maze.gpsum))
     has_bracket = True
     stack = []
     check = {coord}
@@ -157,7 +157,7 @@ def move(maze: Maze, coord: tuple, direction: Direction):
                     if (q[0], q[1] + 1) in stack and q not in stack:
                         stack.append(q)
             stack.extend([q for q in sext if q not in stack])
-            check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
+            check = {shift(q, direction) for q in sext} | {maze.complement(shift(q, direction)) for q in sext}
         elif all(n == "." for n in ns.values()):
             has_bracket = False
             can_move = True
