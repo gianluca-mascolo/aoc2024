@@ -7,11 +7,13 @@ MSG_LOST_ROBOT = "Where are the droids you are looking for?"
 MSG_HIT_WALL = "You are not stubborn enough to push a wall"
 MSG_WRONG_STEP = "Ouch! You bite your tail"
 
+
 class Direction(Enum):
     UP = "^"
     DOWN = "v"
     LEFT = "<"
     RIGHT = ">"
+
 
 class Maze:
     def __init__(self):
@@ -65,24 +67,21 @@ class Maze:
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
             return [coord]
-        if content in MATCH.keys() and direction in [Direction.UP,Direction.DOWN]:
+        if content in MATCH.keys() and direction in [Direction.UP, Direction.DOWN]:
             mv = [coord, self.companion(coord)]
             next_step = self.get(shift(coord, direction))
-            assert next_step == '.'
+            assert next_step == "."
             for c in mv:
                 self.put(c, ".")
             self.put(shift(coord, direction), content)
             self.put(self.companion(shift(coord, direction)), MATCH[content])
             return mv
-        if content in MATCH.keys() and direction in [Direction.LEFT,Direction.RIGHT]:
+        if content in MATCH.keys() and direction in [Direction.LEFT, Direction.RIGHT]:
             next_step = self.get(shift(coord, direction))
-            assert next_step == '.'
+            assert next_step == "."
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
             return [coord]
-
-
-
 
     def companion(self, coord: tuple):
         c = self.get(coord)
@@ -97,10 +96,9 @@ class Maze:
     def gpsum(self):
         r = 0
         for coord, cell in self.map.items():
-            if cell == ('O','[')[self.inflated]:
+            if cell == ("O", "[")[self.inflated]:
                 r += coord[0] + 100 * coord[1]
         return r
-
 
     def inflate(self):
         if not self.inflated:
@@ -122,19 +120,17 @@ class Maze:
             self.inflated = True
         return True
 
+
 def shift(coord: tuple, direction: Direction):
     delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
     return tuple(map(sum, zip(coord, delta[direction])))
+
 
 def move(maze: Maze, coord: tuple, direction: Direction):
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
     if DEBUG:
-        print(
-            "coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {}".format(
-                coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum
-            )
-        )
+        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {}".format(coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum))
     has_bracket = True
     stack = []
     check = {coord}
@@ -145,27 +141,27 @@ def move(maze: Maze, coord: tuple, direction: Direction):
             print(f"ls: {loopstack} s: {stack} c: {check}")
         ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
         if DEBUG:
-            print("ns",ns)
+            print("ns", ns)
         if any(n in "#" for n in ns.values()):
             if DEBUG:
                 print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
             has_bracket = False
-        elif any(n in ['[',']','O'] for n in ns.values()):
+        elif any(n in ["[", "]", "O"] for n in ns.values()):
             has_bracket = True
-            sext = [q for q in check if maze.get(shift(q, direction)) in ['[',']','O']]
+            sext = [q for q in check if maze.get(shift(q, direction)) in ["[", "]", "O"]]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
-                sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
+                sext = [sdict[q] for q in sorted(sdict.keys(), reverse=True)]
             elif direction == Direction.RIGHT:
                 sdict = {q[0]: q for q in sext}
-                sext = [ sdict[q] for q in sorted(sdict.keys()) ]
+                sext = [sdict[q] for q in sorted(sdict.keys())]
             if direction == Direction.DOWN:
                 for q in ns.keys():
-                    if (q[0],q[1]-1) in stack and q not in stack:
+                    if (q[0], q[1] - 1) in stack and q not in stack:
                         stack.append(q)
             if direction == Direction.UP:
                 for q in ns.keys():
-                    if (q[0],q[1]+1) in stack and q not in stack:
+                    if (q[0], q[1] + 1) in stack and q not in stack:
                         stack.append(q)
             stack.extend([q for q in sext if q not in stack])
             check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
@@ -175,10 +171,10 @@ def move(maze: Maze, coord: tuple, direction: Direction):
             sext = [q for q in check if q not in stack]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
-                sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
+                sext = [sdict[q] for q in sorted(sdict.keys(), reverse=True)]
             elif direction == Direction.RIGHT:
                 sdict = {q[0]: q for q in sext}
-                sext = [ sdict[q] for q in sorted(sdict.keys()) ]
+                sext = [sdict[q] for q in sorted(sdict.keys())]
             stack.extend([q for q in sext if q not in stack])
         else:
             has_bracket = False
@@ -193,6 +189,7 @@ def move(maze: Maze, coord: tuple, direction: Direction):
         return stack
     else:
         return []
+
 
 def main():
     global DEBUG
@@ -242,12 +239,13 @@ def main():
                 if DEBUG:
                     print(f"PUSHING {c} {direction.name}")
                 if c not in p:
-                    rr = maze.push(c,direction)
+                    rr = maze.push(c, direction)
                     p.extend(rr)
 
             if DEBUG:
                 maze.print()
         print(maze.gpsum)
+
 
 if __name__ == "__main__":
     main()

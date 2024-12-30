@@ -221,8 +221,7 @@ def move2(maze: Maze, coord: tuple, direction: Direction):
         prima = maze.get(shift(companion, direction))
         if DEBUG:
             print(f"{loopstamp} - beyond {beyond} {maze.get(beyond)}")
-        #if direction in [Direction.UP, Direction.DOWN]:
-
+        # if direction in [Direction.UP, Direction.DOWN]:
 
         if direction in [Direction.UP, Direction.DOWN] and maze.get(shift(companion, direction)) in [".", "[", "]"] and move2(maze, shift(coord, direction), direction):
             read_again = maze.get(shift(companion, direction))
