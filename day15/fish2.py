@@ -219,11 +219,10 @@ def main():
                     print(f"MOVES STACK: {moves}")
                 else:
                     print("NOT MOVING")
-            p = []
-            for c in moves:
-                if c not in p:
-                    rr = maze.push(c, direction)
-                    p.extend(rr)
+            touched = []
+            for coord in moves:
+                if coord not in touched:
+                    touched.extend(maze.push(coord, direction))
 
             if DEBUG:
                 maze.print()
