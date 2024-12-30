@@ -40,16 +40,16 @@ class Maze:
 
     @property
     def robot(self):
-        rpos = None
+        robot_position = None
         for coord, cell in self.map.items():
             if cell == "@":
-                if rpos is None:
-                    rpos = coord
+                if robot_position is None:
+                    robot_position = coord
                 else:
                     raise RuntimeError(MSG_LOST_ROBOT)
-        if rpos is None:
+        if robot_position is None:
             raise RuntimeError(MSG_LOST_ROBOT)
-        return rpos
+        return robot_position
 
     def push(self, coord: tuple, direction: Direction):
         MATCH = {"[": "]", "]": "["}
