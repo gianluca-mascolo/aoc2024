@@ -225,15 +225,14 @@ def main():
             line = reader.readline()
         maze.ylimit = y
 
+        if DEBUG:
+            print("Original")
+            maze.print()
         if args.part == 2:
-            if DEBUG:
-                print("Original")
-                maze.print()
             maze.inflate()
             if DEBUG:
                 print("Inflated")
                 maze.print()
-
         for idx, direction in enumerate(moves):
             if DEBUG:
                 print(idx, maze.robot, direction.name)
