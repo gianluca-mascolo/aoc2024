@@ -122,11 +122,13 @@ def boxchain(maze: Maze, direction: Direction) -> list:
     stack = []
     check = {maze.robot}
     while True:
-        ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
-        if any(n == "#" for n in ns.values()):
+        onwards = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
+        if any(content == "#" for content in onwards.values()):
             stack = []
             break
-        elif any(n in ["[", "]", "O"] for n in ns.values()):
+        elif any(content == "@" for content in onwards.values()):
+            raise RuntimeError(MSG_WRONG_STEP)
+        elif any(content in ["[", "]", "O"] for content in onwards.values()):
             sext = [q for q in check if maze.get(shift(q, direction)) in ["[", "]", "O"]]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
@@ -135,16 +137,16 @@ def boxchain(maze: Maze, direction: Direction) -> list:
                 sdict = {q[0]: q for q in sext}
                 sext = [sdict[q] for q in sorted(sdict.keys())]
             if direction == Direction.DOWN:
-                for q in ns.keys():
+                for q in onwards.keys():
                     if (q[0], q[1] - 1) in stack and q not in stack:
                         stack.append(q)
             if direction == Direction.UP:
-                for q in ns.keys():
+                for q in onwards.keys():
                     if (q[0], q[1] + 1) in stack and q not in stack:
                         stack.append(q)
             stack.extend([q for q in sext if q not in stack])
             check = {shift(q, direction) for q in sext} | {maze.complement(shift(q, direction)) for q in sext}
-        elif all(n == "." for n in ns.values()):
+        elif all(content == "." for content in onwards.values()):
             sext = [q for q in check if q not in stack]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
@@ -155,7 +157,6 @@ def boxchain(maze: Maze, direction: Direction) -> list:
             stack.extend([q for q in sext if q not in stack])
             break
         else:
-            #stack.extend([q for q in check if q not in stack])
             stack = []
             break
     stack.reverse()
