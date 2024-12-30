@@ -207,9 +207,9 @@ def main():
             for coord in blocks:
                 if coord not in touched:
                     touched.extend(maze.push(coord, direction))
-
             if DEBUG:
                 maze.print()
+
         print(maze.gpsum)
 
 
