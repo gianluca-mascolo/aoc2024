@@ -122,39 +122,31 @@ def boxchain(maze: Maze, direction: Direction) -> list:
     stack = []
     check = {maze.robot}
     while True:
-        onwards = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
+        onwards = {coord: maze.get(shift(coord, direction)) for coord in check if coord not in stack}
         if any(content == "#" for content in onwards.values()):
             stack = []
             break
         elif any(content == "@" for content in onwards.values()):
             raise RuntimeError(MSG_WRONG_STEP)
         elif any(content in ["[", "]", "O"] for content in onwards.values()):
-            sext = [q for q in check if maze.get(shift(q, direction)) in ["[", "]", "O"]]
-            if direction == Direction.LEFT:
-                sdict = {q[0]: q for q in sext}
-                sext = [sdict[q] for q in sorted(sdict.keys(), reverse=True)]
-            elif direction == Direction.RIGHT:
-                sdict = {q[0]: q for q in sext}
-                sext = [sdict[q] for q in sorted(sdict.keys())]
+            boxes_xmap = {coord[0]: coord for coord in check if maze.get(shift(coord, direction)) in ["[", "]", "O"]}
+            # Boxes needs to be ordered by X coordinates ascending/descending when moving right/left to be chained correctly
+            boxes = [boxes_xmap[x] for x in sorted(boxes_xmap.keys(), reverse=direction == Direction.LEFT)]
+            # When moving UP/DOWN makes sure that you have all brackets connected with previous row
             if direction == Direction.DOWN:
-                for q in onwards.keys():
-                    if (q[0], q[1] - 1) in stack and q not in stack:
-                        stack.append(q)
-            if direction == Direction.UP:
-                for q in onwards.keys():
-                    if (q[0], q[1] + 1) in stack and q not in stack:
-                        stack.append(q)
-            stack.extend([q for q in sext if q not in stack])
-            check = {shift(q, direction) for q in sext} | {maze.complement(shift(q, direction)) for q in sext}
+                for x, y in onwards.keys():
+                    if (x, y - 1) in stack and (x, y) not in stack:
+                        stack.append((x, y))
+            elif direction == Direction.UP:
+                for x, y in onwards.keys():
+                    if (x, y + 1) in stack and (x, y) not in stack:
+                        stack.append((x, y))
+            stack.extend([coord for coord in boxes if coord not in stack])
+            check = {shift(box, direction) for box in boxes} | {maze.complement(shift(box, direction)) for box in boxes}
         elif all(content == "." for content in onwards.values()):
-            sext = [q for q in check if q not in stack]
-            if direction == Direction.LEFT:
-                sdict = {q[0]: q for q in sext}
-                sext = [sdict[q] for q in sorted(sdict.keys(), reverse=True)]
-            elif direction == Direction.RIGHT:
-                sdict = {q[0]: q for q in sext}
-                sext = [sdict[q] for q in sorted(sdict.keys())]
-            stack.extend([q for q in sext if q not in stack])
+            check_xmap = {coord[0]: coord for coord in check if coord not in stack}
+            boxes = [check_xmap[x] for x in sorted(check_xmap.keys(), reverse=direction == Direction.LEFT)]
+            stack.extend(boxes)
             break
         else:
             stack = []
