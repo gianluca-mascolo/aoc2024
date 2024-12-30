@@ -50,13 +50,37 @@ class Maze:
         return rpos
 
     def push(self, coord: tuple, direction: Direction):
+        MATCH = {"[": "]", "]": "["}
         content = self.get(coord)
         if content == "#":
+            print(f"DUMP: {coord} {direction}")
+            self.print()
             raise RuntimeError(MSG_HIT_WALL)
         next_step = self.get(shift(coord, direction))
-        assert next_step == "."
-        self.put(shift(coord, direction), content)
-        self.put(coord, ".")
+        if next_step != "." and content in ["@", "O"]:
+            print(f"DUMP: {coord} {direction}")
+            self.print()
+            raise RuntimeError("Dot not")
+        if content in ["@", "O"]:
+            self.put(shift(coord, direction), content)
+            self.put(coord, ".")
+            return [coord]
+        if content in MATCH.keys() and direction in [Direction.UP,Direction.DOWN]:
+            mv = [coord, self.companion(coord)]
+            next_step = self.get(shift(coord, direction))
+            assert next_step == '.'
+            for c in mv:
+                self.put(c, ".")
+            self.put(shift(coord, direction), content)
+            self.put(self.companion(shift(coord, direction)), MATCH[content])
+            return mv
+        if content in MATCH.keys() and direction in [Direction.LEFT,Direction.RIGHT]:
+            next_step = self.get(shift(coord, direction))
+            assert next_step == '.'
+            self.put(shift(coord, direction), content)
+            self.put(coord, ".")
+            return [coord]
+
 
 
 
@@ -111,7 +135,6 @@ def move(maze: Maze, coord: tuple, direction: Direction):
                 coord, direction.name, current, next_step, maze.companion(coord), maze.get(maze.companion(coord)), maze.gpsum
             )
         )
-    #[(3, 3), (5, 3), (4, 3), (6, 3), (7, 3)] ok ci sei quasi, riordina quando metti le cose in stack
     has_bracket = True
     stack = []
     check = {coord}
@@ -132,12 +155,18 @@ def move(maze: Maze, coord: tuple, direction: Direction):
             sext = [q for q in check if maze.get(shift(q, direction)) in ['[',']','O']]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
-                print("*", sdict)
                 sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
             elif direction == Direction.RIGHT:
                 sdict = {q[0]: q for q in sext}
-                print("*", sdict)
                 sext = [ sdict[q] for q in sorted(sdict.keys()) ]
+            if direction == Direction.DOWN:
+                for q in ns.keys():
+                    if (q[0],q[1]-1) in stack and q not in stack:
+                        stack.append(q)
+            if direction == Direction.UP:
+                for q in ns.keys():
+                    if (q[0],q[1]+1) in stack and q not in stack:
+                        stack.append(q)
             stack.extend([q for q in sext if q not in stack])
             check = {shift(q, direction) for q in sext} | {maze.companion(shift(q, direction)) for q in sext}
         elif all(n == "." for n in ns.values()):
@@ -146,11 +175,9 @@ def move(maze: Maze, coord: tuple, direction: Direction):
             sext = [q for q in check if q not in stack]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
-                print("*", sdict)
                 sext = [ sdict[q] for q in sorted(sdict.keys(),reverse=True) ]
             elif direction == Direction.RIGHT:
                 sdict = {q[0]: q for q in sext}
-                print("*", sdict)
                 sext = [ sdict[q] for q in sorted(sdict.keys()) ]
             stack.extend([q for q in sext if q not in stack])
         else:
@@ -211,10 +238,14 @@ def main():
             if DEBUG:
                 print(idx, maze.robot, direction.name)
             m = move(maze, maze.robot, direction)
+            p = []
             for c in m:
                 if DEBUG:
                     print(f"PUSHING {c} {direction.name}")
-                maze.push(c,direction)
+                if c not in p:
+                    rr = maze.push(c,direction)
+                    p.extend(rr)
+
             if DEBUG:
                 maze.print()
         print(maze.gpsum)
