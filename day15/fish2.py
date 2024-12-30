@@ -51,33 +51,24 @@ class Maze:
             raise RuntimeError(MSG_LOST_ROBOT)
         return robot_position
 
-    def push(self, coord: tuple, direction: Direction):
-        MATCH = {"[": "]", "]": "["}
+    def push(self, coord: tuple, direction: Direction) -> list:
+        brackets = {"[": "]", "]": "["}
         content = self.get(coord)
+        next_step = self.get(shift(coord, direction))
         if content == "#":
             print(f"DUMP: {coord} {direction}")
             self.print()
             raise RuntimeError(MSG_HIT_WALL)
-        next_step = self.get(shift(coord, direction))
-        if next_step != "." and content in ["@", "O"]:
-            print(f"DUMP: {coord} {direction}")
-            self.print()
-            raise RuntimeError("Dot not")
-        if content in ["@", "O"]:
-            self.put(shift(coord, direction), content)
-            self.put(coord, ".")
-            return [coord]
-        if content in MATCH.keys() and direction in [Direction.UP, Direction.DOWN]:
-            mv = [coord, self.companion(coord)]
+        if content in brackets.keys() and direction in [Direction.UP, Direction.DOWN]:
+            bracket_couple = [coord, self.companion(coord)]
             next_step = self.get(shift(coord, direction))
-            assert next_step == "."
-            for c in mv:
+            assert all(self.get(shift(c, direction)) == "." for c in bracket_couple)
+            for c in bracket_couple:
                 self.put(c, ".")
             self.put(shift(coord, direction), content)
-            self.put(self.companion(shift(coord, direction)), MATCH[content])
-            return mv
-        if content in MATCH.keys() and direction in [Direction.LEFT, Direction.RIGHT]:
-            next_step = self.get(shift(coord, direction))
+            self.put(self.companion(shift(coord, direction)), brackets[content])
+            return bracket_couple
+        elif content in ["@", "O"] + list(brackets.keys()):
             assert next_step == "."
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
