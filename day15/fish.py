@@ -1,67 +1,158 @@
 #!/usr/bin/env python3
 import argparse
+from enum import Enum
 
 DEBUG = False
+MSG_LOST_ROBOT = "Where are the droids you are looking for?"
+MSG_HIT_WALL = "You are not stubborn enough to push a wall"
+MSG_WRONG_STEP = "Ouch! You bite your tail"
 
-DIRECTIONS = {"<": (-1, 0), "^": (0, -1), "v": (0, 1), ">": (1, 0)}
+
+class Direction(Enum):
+    UP = "^"
+    DOWN = "v"
+    LEFT = "<"
+    RIGHT = ">"
 
 
-def move(cell: tuple, maze: list, direction: bytes):
-    xlimit = len(maze[0])
-    ylimit = len(maze)
-    dx = DIRECTIONS[direction][0]
-    dy = DIRECTIONS[direction][1]
-    x = cell[0]
-    y = cell[1]
-    if x + dx < 0 or x + dx >= xlimit or y + dy < 0 or y + dy >= ylimit:
-        return cell
-    elif maze[y + dy][x + dx] == "#":
-        return cell
-    elif maze[y + dy][x + dx] == ".":
-        if maze[y][x] == "[" and maze[y + dy][x + dx + 1] in [".", "["]:
-            print(f"[ {x} {y} {dx} {dy}")
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-            maze[y + dy][x + dx + 1] = "]"
-            maze[y][x + dx + 1] = "."
-            # maze[y][x], maze[y + dy][x + 1] = maze[y + dy][x + 1], maze[y][x]
-        elif maze[y][x] == "]" and maze[y + dy][x + dx - 1] in [".", "]"]:
-            print("pluto")
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-            maze[y][x], maze[y + dy][x - 1] = maze[y + dy][x - 1], maze[y][x]
+class Maze:
+    def __init__(self):
+        self.map = {}
+        self.xlimit = 0
+        self.ylimit = 0
+        self.inflated = False
+
+    def put(self, coord: tuple, content: bytes):
+        self.map[coord] = content
+
+    def get(self, coord: tuple) -> bytes:
+        if coord in self.map:
+            return self.map[coord]
         else:
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-        return (x + dx, y + dy)
-    elif maze[y + dy][x + dx] == "O":
-        newpos = move(cell=(x + dx, y + dy), maze=maze, direction=direction)
-        if newpos != (x + dx, y + dy):
-            maze[y][x], maze[y + dy][x + dx] = maze[y + dy][x + dx], maze[y][x]
-            return (x + dx, y + dy)
+            return "#"
+
+    def print(self):
+        for y in range(self.ylimit):
+            line = []
+            for x in range(self.xlimit):
+                line.append(self.get((x, y)))
+            print("".join(line))
+
+    @property
+    def robot(self):
+        robot_position = None
+        for coord, cell in self.map.items():
+            if cell == "@":
+                if robot_position is None:
+                    robot_position = coord
+                else:
+                    raise RuntimeError(MSG_LOST_ROBOT)
+        if robot_position is None:
+            raise RuntimeError(MSG_LOST_ROBOT)
+        return robot_position
+
+    def push(self, coord: tuple, direction: Direction) -> list:
+        brackets = {"[": "]", "]": "["}
+        content = self.get(coord)
+        next_step = self.get(shift(coord, direction))
+        if content == "#":
+            print(f"DUMP: {coord} {direction}")
+            self.print()
+            raise RuntimeError(MSG_HIT_WALL)
+        elif content in brackets.keys() and direction in [Direction.UP, Direction.DOWN]:
+            bracket_couple = [coord, self.complement(coord)]
+            next_step = self.get(shift(coord, direction))
+            assert all(self.get(shift(c, direction)) == "." for c in bracket_couple)
+            for c in bracket_couple:
+                self.put(c, ".")
+            self.put(shift(coord, direction), content)
+            self.put(self.complement(shift(coord, direction)), brackets[content])
+            return bracket_couple
+        elif content in ["@", "O"] + list(brackets.keys()):
+            assert next_step == "."
+            self.put(shift(coord, direction), content)
+            self.put(coord, ".")
+            return [coord]
         else:
-            return cell
-    elif maze[y + dy][x + dx] == "[" or maze[y + dy][x + dx] == "]":
-        newpos = move(cell=(x + 2 * dx, y + dy), maze=maze, direction=direction)
-        print(f"NP: {newpos} cell: {cell} delta: {DIRECTIONS[direction]}")
-        return cell
-    else:
-        print("unknown")
-        assert False
+            return []
+
+    def complement(self, coord: tuple) -> tuple:
+        c = self.get(coord)
+        if c == "[":
+            return shift(coord, Direction.RIGHT)
+        elif c == "]":
+            return shift(coord, Direction.LEFT)
+        else:
+            return coord
+
+    @property
+    def gpsum(self):
+        r = 0
+        for coord, cell in self.map.items():
+            if cell == ("O", "[")[self.inflated]:
+                r += coord[0] + 100 * coord[1]
+        return r
+
+    def inflate(self):
+        if not self.inflated:
+            newmap = {}
+            for coord, cell in self.map.items():
+                x = coord[0]
+                y = coord[1]
+                if cell in ["#", "."]:
+                    newmap[(2 * x, y)] = cell
+                    newmap[(2 * x + 1, y)] = cell
+                elif cell == "O":
+                    newmap[(2 * x, y)] = "["
+                    newmap[(2 * x + 1, y)] = "]"
+                elif cell == "@":
+                    newmap[(2 * x, y)] = "@"
+                    newmap[(2 * x + 1, y)] = "."
+            self.map = {k: v for k, v in newmap.items()}
+            self.xlimit = 2 * x + 2
+            self.inflated = True
 
 
-def inflate(maze: list):
-    newmaze = []
-    for line in maze:
-        newline = []
-        for cell in line:
-            if cell == "#":
-                newline.extend(["#", "#"])
-            elif cell == "O":
-                newline.extend(["[", "]"])
-            elif cell == ".":
-                newline.extend([".", "."])
-            elif cell == "@":
-                newline.extend(["@", "."])
-        newmaze.append(newline)
-    return newmaze
+def shift(coord: tuple, direction: Direction) -> tuple:
+    delta = {Direction.LEFT: (-1, 0), Direction.UP: (0, -1), Direction.DOWN: (0, 1), Direction.RIGHT: (1, 0)}
+    return tuple(map(sum, zip(coord, delta[direction])))
+
+
+def boxchain(maze: Maze, direction: Direction) -> list:
+    stack = []
+    check = {maze.robot}
+    while True:
+        onwards = {coord: maze.get(shift(coord, direction)) for coord in check if coord not in stack}
+        if any(content == "#" for content in onwards.values()):
+            stack = []
+            break
+        elif any(content == "@" for content in onwards.values()):
+            raise RuntimeError(MSG_WRONG_STEP)
+        elif any(content in ["[", "]", "O"] for content in onwards.values()):
+            boxes_xmap = {coord[0]: coord for coord in check if maze.get(shift(coord, direction)) in ["[", "]", "O"]}
+            # Boxes needs to be ordered by X coordinates ascending/descending when moving right/left to be chained correctly
+            boxes = [boxes_xmap[x] for x in sorted(boxes_xmap.keys(), reverse=direction == Direction.LEFT)]
+            # When moving UP/DOWN makes sure that you have all brackets connected with previous row
+            if direction == Direction.DOWN:
+                for x, y in onwards.keys():
+                    if (x, y - 1) in stack and (x, y) not in stack:
+                        stack.append((x, y))
+            elif direction == Direction.UP:
+                for x, y in onwards.keys():
+                    if (x, y + 1) in stack and (x, y) not in stack:
+                        stack.append((x, y))
+            stack.extend([coord for coord in boxes if coord not in stack])
+            check = {shift(box, direction) for box in boxes} | {maze.complement(shift(box, direction)) for box in boxes}
+        elif all(content == "." for content in onwards.values()):
+            check_xmap = {coord[0]: coord for coord in check if coord not in stack}
+            boxes = [check_xmap[x] for x in sorted(check_xmap.keys(), reverse=direction == Direction.LEFT)]
+            stack.extend(boxes)
+            break
+        else:
+            stack = []
+            break
+    stack.reverse()
+    return stack
 
 
 def main():
@@ -73,11 +164,10 @@ def main():
     args = parser.parse_args()
     if args.debug:
         DEBUG = True
-    assert args.part in [1, 2]
     with open(args.filename, "r") as reader:
         line = reader.readline()
         loading = "MAZE"
-        maze = []
+        maze = Maze()
         moves = []
         y = 0
         while line != "":  # The EOF char is an empty string
@@ -87,50 +177,40 @@ def main():
                 line = reader.readline()
                 continue
             if loading == "MAZE":
-                ml = [c for c in line]
-                if "@" in ml:
-                    robot = (ml.index("@"), y)
-                maze.append(ml)
+                maze.xlimit = len(line)
+                for x, cell in enumerate(line):
+                    maze.put((x, y), cell)
+                y += 1
             elif loading == "MOVES":
-                moves.extend(m for m in line)
+                moves.extend(Direction(m) for m in line)
             line = reader.readline()
-            y += 1
-        if DEBUG:
-            for line in maze:
-                print("".join(line))
-            print(moves)
-            print(robot)
+        maze.ylimit = y
 
-        if args.part == 1:
-            for idx, direction in enumerate(moves):
-                if DEBUG:
-                    print(idx, robot, direction)
-                robot = move(cell=robot, maze=maze, direction=direction)
-                if DEBUG:
-                    for line in maze:
-                        print("".join(line))
-            result = 0
-            for y, line in enumerate(maze):
-                for x, cell in enumerate(line):
-                    if cell == "O":
-                        result += x + 100 * y
-            print(result)
-        else:
-            maze = inflate(maze)
-            for y, line in enumerate(maze):
-                for x, cell in enumerate(line):
-                    if cell == "@":
-                        robot = (x, y)
+        if DEBUG:
+            print("Original")
+            maze.print()
+        if args.part == 2:
+            maze.inflate()
             if DEBUG:
-                for line in maze:
-                    print("".join(line))
-            for idx, direction in enumerate(moves):
-                if DEBUG:
-                    print(idx, robot, direction)
-                robot = move(cell=robot, maze=maze, direction=direction)
-                if DEBUG:
-                    for line in maze:
-                        print("".join(line))
+                print("Inflated")
+                maze.print()
+        for idx, direction in enumerate(moves):
+            if DEBUG:
+                print("STEP: {} ROBOT: {} DIRECTION: {}".format(idx, maze.robot, direction.name))
+            blocks = boxchain(maze, direction)
+            if DEBUG:
+                if len(blocks):
+                    print(f"MOVES STACK: {blocks}")
+                else:
+                    print("NOT MOVING")
+            touched = []
+            for coord in blocks:
+                if coord not in touched:
+                    touched.extend(maze.push(coord, direction))
+            if DEBUG:
+                maze.print()
+
+        print(maze.gpsum)
 
 
 if __name__ == "__main__":
