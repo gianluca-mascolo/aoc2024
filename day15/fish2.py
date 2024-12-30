@@ -118,20 +118,15 @@ def shift(coord: tuple, direction: Direction) -> tuple:
     return tuple(map(sum, zip(coord, delta[direction])))
 
 
-def boxchain(maze: Maze, coord: tuple, direction: Direction) -> list:
-    current = maze.get(coord)
-    next_step = maze.get(shift(coord, direction))
-    has_bracket = True
+def boxchain(maze: Maze, direction: Direction) -> list:
     stack = []
-    check = {coord}
-    loopstack = 0
-    can_move = False
-    while has_bracket and current == "@":
+    check = {maze.robot}
+    while True:
         ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
-        if any(n in "#" for n in ns.values()):
-            has_bracket = False
+        if any(n == "#" for n in ns.values()):
+            stack = []
+            break
         elif any(n in ["[", "]", "O"] for n in ns.values()):
-            has_bracket = True
             sext = [q for q in check if maze.get(shift(q, direction)) in ["[", "]", "O"]]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
@@ -150,8 +145,6 @@ def boxchain(maze: Maze, coord: tuple, direction: Direction) -> list:
             stack.extend([q for q in sext if q not in stack])
             check = {shift(q, direction) for q in sext} | {maze.complement(shift(q, direction)) for q in sext}
         elif all(n == "." for n in ns.values()):
-            has_bracket = False
-            can_move = True
             sext = [q for q in check if q not in stack]
             if direction == Direction.LEFT:
                 sdict = {q[0]: q for q in sext}
@@ -160,15 +153,13 @@ def boxchain(maze: Maze, coord: tuple, direction: Direction) -> list:
                 sdict = {q[0]: q for q in sext}
                 sext = [sdict[q] for q in sorted(sdict.keys())]
             stack.extend([q for q in sext if q not in stack])
+            break
         else:
-            has_bracket = False
-            stack.extend([q for q in check if q not in stack])
-        loopstack += 1
+            #stack.extend([q for q in check if q not in stack])
+            stack = []
+            break
     stack.reverse()
-    if can_move:
-        return stack
-    else:
-        return []
+    return stack
 
 
 def main():
@@ -213,7 +204,7 @@ def main():
         for idx, direction in enumerate(moves):
             if DEBUG:
                 print("STEP: {} ROBOT: {} DIRECTION: {}".format(idx, maze.robot, direction.name))
-            blocks = boxchain(maze, maze.robot, direction)
+            blocks = boxchain(maze, direction)
             if DEBUG:
                 if len(blocks):
                     print(f"MOVES STACK: {blocks}")
