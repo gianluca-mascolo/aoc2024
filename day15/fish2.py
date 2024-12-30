@@ -59,7 +59,7 @@ class Maze:
             print(f"DUMP: {coord} {direction}")
             self.print()
             raise RuntimeError(MSG_HIT_WALL)
-        if content in brackets.keys() and direction in [Direction.UP, Direction.DOWN]:
+        elif content in brackets.keys() and direction in [Direction.UP, Direction.DOWN]:
             bracket_couple = [coord, self.companion(coord)]
             next_step = self.get(shift(coord, direction))
             assert all(self.get(shift(c, direction)) == "." for c in bracket_couple)
@@ -73,6 +73,8 @@ class Maze:
             self.put(shift(coord, direction), content)
             self.put(coord, ".")
             return [coord]
+        else:
+            return []
 
     def companion(self, coord: tuple):
         c = self.get(coord)
