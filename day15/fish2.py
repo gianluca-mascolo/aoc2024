@@ -121,22 +121,14 @@ def shift(coord: tuple, direction: Direction) -> tuple:
 def move(maze: Maze, coord: tuple, direction: Direction) -> list:
     current = maze.get(coord)
     next_step = maze.get(shift(coord, direction))
-    if DEBUG:
-        print("coord: {} dir: {} cur: {} next {} ccord: {} comp {} sum {}".format(coord, direction.name, current, next_step, maze.complement(coord), maze.get(maze.complement(coord)), maze.gpsum))
     has_bracket = True
     stack = []
     check = {coord}
     loopstack = 0
     can_move = False
     while has_bracket and current == "@":
-        if DEBUG:
-            print(f"ls: {loopstack} s: {stack} c: {check}")
         ns = {c: maze.get(shift(c, direction)) for c in check if c not in stack}
-        if DEBUG:
-            print("ns", ns)
         if any(n in "#" for n in ns.values()):
-            if DEBUG:
-                print(f"found a wall at {[k for k,v in ns.items() if v=='#']}")
             has_bracket = False
         elif any(n in ["[", "]", "O"] for n in ns.values()):
             has_bracket = True
@@ -172,10 +164,6 @@ def move(maze: Maze, coord: tuple, direction: Direction) -> list:
             has_bracket = False
             stack.extend([q for q in check if q not in stack])
         loopstack += 1
-    if current == "@" and DEBUG:
-        print("<stack>")
-        print(can_move, stack)
-        print("</stack>")
     stack.reverse()
     if can_move:
         return stack
@@ -224,12 +212,15 @@ def main():
                 maze.print()
         for idx, direction in enumerate(moves):
             if DEBUG:
-                print(idx, maze.robot, direction.name)
-            m = move(maze, maze.robot, direction)
+                print("STEP: {} ROBOT: {} DIRECTION: {}".format(idx, maze.robot, direction.name))
+            moves = move(maze, maze.robot, direction)
+            if DEBUG:
+                if len(moves):
+                    print(f"MOVES STACK: {moves}")
+                else:
+                    print("NOT MOVING")
             p = []
-            for c in m:
-                if DEBUG:
-                    print(f"PUSHING {c} {direction.name}")
+            for c in moves:
                 if c not in p:
                     rr = maze.push(c, direction)
                     p.extend(rr)
